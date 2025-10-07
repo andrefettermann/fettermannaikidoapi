@@ -3,7 +3,31 @@ import cors from 'cors';
 import path from 'path';
 import cookieParser from 'cookie-parser';
 import pessoasRoute from './routes/pessoasRouter';
-import { generateToken } from './services/authService';
+import { generateToken, tokenLimiter } from './services/authService';
+
+
+const VALID_CREDENTIALS = {
+  username: process.env.ADMIN_USER || 'admin',
+  password: process.env.ADMIN_SENHA || 'senha123',
+};
+
+function basicAuth(req: express.Request, res: express.Response, next: express.NextFunction) {
+  const authHeader = req.headers.authorization;
+  
+  if (!authHeader || !authHeader.startsWith('Basic ')) {
+    return res.status(401).json({ error: 'Autenticação necessária' });
+  }
+  
+  const base64Credentials = authHeader.split(' ')[1];
+  const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
+  const [username, password] = credentials.split(':');
+  
+  if (username !== VALID_CREDENTIALS.username || password !== VALID_CREDENTIALS.password) {
+    return res.status(401).json({ error: 'Credenciais inválidas' });
+  }
+  
+  next();
+}
 
 const app = express();
 
@@ -21,7 +45,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 //app.use('/api/', authenticate, pessoas);
 
 // Rota de login (sem segurança, apenas para gerar o token)
-app.post('/login', (req, res) => {
+app.post('/gera-token', tokenLimiter, basicAuth, (req, res) => {
   // Exemplo: gerar um token para um usuário fictício
   const token = generateToken('user123');
   res.json({ token });
