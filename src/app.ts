@@ -4,7 +4,9 @@ import path from 'path';
 import cookieParser from 'cookie-parser';
 import pessoasRoute from './routes/pessoasRouter';
 import { generateToken, tokenLimiter } from './services/authService';
+import dotenv from 'dotenv'
 
+dotenv.config();
 
 const VALID_CREDENTIALS = {
   username: process.env.ADMIN_USER || 'admin',
