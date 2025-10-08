@@ -13,7 +13,14 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
     // Armazena informações do usuário no objeto de requisição
     req.body.user = decoded;
     next();
-  } catch (error) {
-    return res.status(401).json({ message: 'Token inválido ou expirado' });
+  } catch (error: any) {
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({ message: 'Token expirado' });
+    } else if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({ message: 'Token invalido' });
+    } else {
+      throw error;
+    }
+    
   }
 };
