@@ -44,9 +44,9 @@ function setDoc(osDados: any) {
     doc = {
         'aniversario': osDados.aniversario,
         'matricula': osDados.matricula,
-        'nome': osDados.nome,
+        'nome': encripta(osDados.nome),
         'situacao': osDados.situacao,
-        'cpf': osDados.cpf===''?'':osDados.cpf,
+        'cpf': osDados.cpf===''?'':encripta(osDados.cpf),
         'data_inicio_aikido': osDados.data_inicio,
         'data_matricula': osDados.data_matricula,
         'is_professor': osDados.is_professor?true:false,
@@ -69,7 +69,6 @@ function decriptaCpf(cpf: any | null | undefined): string {
 export async function buscaTodos(): Promise<any> {
     try {
         const resposta: any = await repositorio.findAll();
-        
         if (resposta.sucesso) {
             resposta.docs.forEach((doc: any) => {
                 doc._id = doc._id.toString();
@@ -99,6 +98,161 @@ export async function buscaTodos(): Promise<any> {
                 sucesso: false,
                 erro: resposta.erro
             };
+        }        
+    } catch (error) {
+        throw error;
+    }
+}
+
+export async function buscaAniversariantes(oMes: string): Promise<any> {
+    const mes = oMes;
+
+    try {
+        const resposta: any = await repositorio.findByAniversario(mes);
+        if (resposta.sucesso) {
+            resposta.docs.forEach((element: any) => {
+                element.nome = decripta(element.nome);
+                element.cpf = decriptaCpf(element.cpf);
+            });
+
+            return {
+                sucesso: true,
+                docs: resposta.docs
+            };
+        } else {
+            return resposta;
+        }        
+    } catch (error) {
+        throw error;
+    }
+}
+
+export async function buscaSituacao(aSituacao: string): Promise<any> {
+    const situacao = aSituacao;
+    try {
+        const resposta: any = await repositorio.findBySituacao(situacao);
+        if (resposta.sucesso) {
+
+            resposta.docs.forEach((element: any) => {
+                element.nome = decripta(element.nome);
+                element.cpf = decriptaCpf(element.cpf);
+            });
+
+            resposta.docs.sort((a: { nome: string; }, b: { nome: string; }) => {
+                var fa = a.nome.toLowerCase();
+                var fb = b.nome.toLowerCase();
+
+                if (fa < fb) {
+                    return -1;
+                }
+                if (fa > fb) {
+                    return 1;
+                }
+                return 0;
+            });
+
+            return {
+                sucesso: true,
+                docs: resposta.docs
+            };
+        } else {
+            return resposta;
+        }        
+    } catch (error) {
+        throw error;
+    }
+}
+
+export async function buscaProfessores(): Promise<any> {
+    try {
+        const resposta: any = await repositorio.findByIsProfessor(true);
+        if (resposta.sucesso) {
+
+            resposta.docs.forEach((element: any) => {
+                element.nome = decripta(element.nome);
+                element.cpf = decriptaCpf(element.cpf);
+            });
+
+            resposta.docs.sort((a: { nome: string; }, b: { nome: string; }) => {
+                var fa = a.nome.toLowerCase();
+                var fb = b.nome.toLowerCase();
+
+                if (fa < fb) {
+                    return -1;
+                }
+                if (fa > fb) {
+                    return 1;
+                }
+                return 0;
+            });
+
+            return {
+                sucesso: true,
+                docs: resposta.docs
+            };
+        } else {
+            return resposta;
+        }        
+    } catch (error) {
+        throw error;
+    }
+}
+
+export async function inclui(osDados: any): Promise<any> {
+    const dados = setDoc(osDados);
+    try {
+        return await repositorio.insert(dados);
+    } catch (error) {
+        throw error;
+    }
+}
+
+export async function atualiza(oId: string, osDados: any): Promise<any> {
+    const id = oId;
+    const dados = setDoc(osDados);
+
+    try {
+        return await repositorio.update(id, dados);
+    } catch (error) {
+        throw error;
+    }
+
+}
+
+export async function busca(oId: string): Promise<any> {
+    const id = oId;
+    try {
+        const resposta: any = await repositorio.find(id);
+        if (resposta.sucesso) {
+            let pessoa = resposta.doc;
+            pessoa.nome = decripta(pessoa.nome);
+            pessoa.cpf = decriptaCpf(pessoa.cpf);
+
+            if (pessoa.id_graduacao) {
+                pessoa.id_graduacao = pessoa.id_graduacao.toString();
+            }
+
+            if (pessoa.id_dojo) {
+                pessoa.id_dojo = pessoa.id_dojo.toString();
+            }
+
+            pessoa.promocoes.forEach(async (p: any) => {
+                p.data_formatada = formatDateDDMMAAAA(p.data);
+                if (p._id) {
+                    p._id = p._id.toString();
+                }
+            });
+
+            pessoa.pagamentos.forEach((p: any) => {
+                p.data_formatada = formatDateDDMMAAAA(p.data);
+            });
+
+            return {
+                sucesso: true,
+                doc: pessoa
+            };
+        } else {
+            return resposta;
         }        
     } catch (error) {
         throw error;
