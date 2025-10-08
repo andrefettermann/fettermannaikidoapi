@@ -21,6 +21,8 @@ router.get('/pessoas/situacao/:situacao', authenticate, controller.buscaSituacao
 
 router.get('/pessoas/aniversariantes/:mes', authenticate, controller.buscaAniversariantes);
 
+router.get('/pessoas/professores', authenticate, controller.buscaProfessores)
+
 router.post('/pessoa/inclui/', authenticate, controller.inclui);
 
 router.patch('/pessoa/altera/:id', authenticate, controller.atualiza);
