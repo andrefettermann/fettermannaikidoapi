@@ -37,7 +37,7 @@ export async function findAll(){
     try{
         await connectDB();
 
-        const result: ITaxa[] = await Taxa.find({});
+        const result: ITaxa[] = await Taxa.find({}).sort({ tipo: 1 });
                 //Graduacao.find({}).sort({ sequencia: 1 }).lean();
         if (result) {
             return {
