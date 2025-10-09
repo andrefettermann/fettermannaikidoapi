@@ -1,4 +1,4 @@
-import { Document, ObjectId } from "mongodb";
+import { ObjectId } from "mongodb";
 import { IPessoa, Pessoa } from "../models/pessoa";
 import { connectDB } from "../db";
 

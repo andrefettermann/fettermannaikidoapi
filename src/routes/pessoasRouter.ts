@@ -13,19 +13,19 @@ const profileSchema = Joi.object({
 
 /* Pessoa routes */
 
-router.get('/pessoa/:id', authenticate, controller.busca);
+router.get('/busca/:id', authenticate, controller.busca);
 
-router.get('/pessoas/', authenticate, controller.buscaTodos);
+router.get('/lista/todos', authenticate, controller.buscaTodos);
 
-router.get('/pessoas/situacao/:situacao', authenticate, controller.buscaSituacao);
+router.get('/lista/situacao/:situacao', authenticate, controller.buscaSituacao);
 
-router.get('/pessoas/aniversariantes/:mes', authenticate, controller.buscaAniversariantes);
+router.get('/lista/aniversariantes/:mes', authenticate, controller.buscaAniversariantes);
 
-router.get('/pessoas/professores', authenticate, controller.buscaProfessores)
+router.get('/lista/professores', authenticate, controller.buscaProfessores)
 
-router.post('/pessoa/inclui/', authenticate, controller.inclui);
+router.post('/inclui/', authenticate, controller.inclui);
 
-router.patch('/pessoa/altera/:id', authenticate, controller.atualiza);
+router.patch('/altera/:id', authenticate, controller.atualiza);
 
 /* Graduacao routes
 

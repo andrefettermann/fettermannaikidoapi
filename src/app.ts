@@ -3,7 +3,8 @@ import cors from 'cors';
 import path from 'path';
 import cookieParser from 'cookie-parser';
 import pessoasRoute from './routes/pessoasRouter';
-import { generateToken, tokenLimiter } from './services/authService';
+import taxasRoute from './routes/taxasRouter';
+import { generateToken } from './services/authService';
 import dotenv from 'dotenv'
 
 dotenv.config();
@@ -47,14 +48,16 @@ app.use(express.static(path.join(__dirname, 'public')));
 //app.use('/api/', authenticate, pessoas);
 
 // Rota de login (sem segurança, apenas para gerar o token)
-app.post('/gera-token', tokenLimiter, basicAuth, (req, res) => {
+app.post('/gera-token', basicAuth, (req, res) => {
   // Exemplo: gerar um token para um usuário fictício
   const token = generateToken('user123');
   res.json({ token });
 });
 
 // Rotas protegidas
-app.use('/api', pessoasRoute);
+//app.use('/api/auth', authRoutes);
+app.use('/api/pessoas', pessoasRoute);
+app.use('/api/taxas', taxasRoute);
 
 app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
     res.status(500).send(error.message);

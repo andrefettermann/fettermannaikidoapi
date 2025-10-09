@@ -5,7 +5,7 @@ import rateLimit from 'express-rate-limit';
 dotenv.config();
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
-
+/*
 export const tokenLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
   max: 10, // máximo 10 requisições por IP
@@ -13,7 +13,7 @@ export const tokenLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
-
+*/
 export const generateToken = (userId: string): string => {
   return jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: '1h' });
 };

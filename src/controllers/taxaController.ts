@@ -1,6 +1,8 @@
-
+// taxaController.ts
 import { Request, Response, NextFunction } from 'express';
-import * as servico from "../services/pessoaService";
+import * as servico from "../services/taxaService";
+
+const MENSAGEM_ERRO_LER = "Erro ao ler os dados";
 
 export async function buscaTodos(req: Request, res: Response, next: NextFunction) {
     try {
@@ -12,7 +14,7 @@ export async function buscaTodos(req: Request, res: Response, next: NextFunction
                 return res.status(204).json( {result: resposta} )
             }
         } else {
-            res.status(500).json({ mensagem: "Erro ao ler os dados" });
+            res.status(500).json({ mensagem: MENSAGEM_ERRO_LER });
         }
     } catch (error) {
         res.status(500).json({ error });
@@ -29,59 +31,7 @@ export async function busca(req: Request, res: Response, next: NextFunction) {
                 return res.status(204).json( {result: resposta} )
             }
         } else {
-            res.status(500).json({ mensagem: "Erro ao ler os dados" });
-        }
-    } catch (error) {
-        res.status(500).json({ error });
-    }
-}
-
-export async function buscaAniversariantes(req: Request, res: Response, next: NextFunction) {
-    try {
-        const resposta: any = 
-                    await servico.buscaAniversariantes(req.params.mes);
-        if (resposta) {
-            if (resposta.sucesso) {
-                return res.status(200).send(resposta.docs)
-            } else {
-                return res.status(204).json( {response: resposta} )
-            }
-        } else {
-            res.status(500).json({ mensagem: "Erro ao ler os dados" });
-        }
-    } catch (error) {
-        res.status(500).json({ error });
-    }
-}
-
-export async function buscaSituacao(req: Request, res: Response, next: NextFunction) {
-    try {
-        const resposta: any = await servico.buscaSituacao(req.params.situacao);
-        if (resposta) {
-            if (resposta.sucesso) {
-                return res.status(200).send(resposta.docs)
-            } else {
-                return res.status(204).json( {response: resposta} )
-            }
-        } else {
-            res.status(500).json({ mensagem: "Erro ao ler os dados" });
-        }
-    } catch (error) {
-        res.status(500).json({ error });
-    }
-}
-
-export async function buscaProfessores(req: Request,res: Response, next: NextFunction) {
-    try {
-        const resposta: any = await servico.buscaProfessores();
-        if (resposta) {
-            if (resposta.sucesso) {
-                return res.status(200).send(resposta.docs)
-            } else {
-                return res.status(204).json( {response: resposta} )
-            }
-        } else {
-            res.status(500).json({ mensagem: "Erro ao ler os dados" });
+            res.status(500).json({ mensagem: MENSAGEM_ERRO_LER });
         }
     } catch (error) {
         res.status(500).json({ error });
