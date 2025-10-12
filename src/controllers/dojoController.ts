@@ -66,9 +66,8 @@ export async function atualiza(req: Request, res: Response, next: NextFunction) 
     try {
         const resposta: any = await servico.atualiza(req.params.id, req.body);
         if (resposta) {
-            if (resposta.success) {
+            if (resposta.sucesso) {
                 res.status(201).json(resposta);
-            
             } else {
                 res.status(500).json({ mensagem: resposta.error });
             }

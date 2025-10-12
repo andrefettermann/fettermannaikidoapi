@@ -1,5 +1,4 @@
 // taxaRepository.ts
-import { ObjectId } from "mongodb";
 import { Taxa, ITaxa } from "../models/taxa";
 import { connectDB } from "../db";
 

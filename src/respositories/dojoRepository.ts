@@ -1,5 +1,5 @@
 // dojoRespository.ts
-import { Document, ObjectId } from "mongodb";
+import { ObjectId } from "mongodb";
 import { Dojo, IDojo } from "../models/dojo";
 import { connectDB } from "../db";
 
@@ -144,12 +144,19 @@ export async function update(oId: string, osDados: IDojo): Promise<any> {
         await connectDB();
 
         const result: IDojo | null = 
-            await Dojo.findByIdAndUpdate({"_id":oId}, osDados, {new: true})
-
+            await Dojo.findByIdAndUpdate(
+                {"_id":oId}, 
+                osDados, 
+                {
+                    new: true,
+                    runValidators: true
+                }
+            )
+        
         if(result){
             return {
                 sucesso: true,
-                total_modificado: result
+                doc: result
             }
         } else {
             return {

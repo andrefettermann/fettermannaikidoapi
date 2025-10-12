@@ -25,13 +25,10 @@ export async function connectDB(): Promise<typeof mongoose> {
   return global.mongooseConn;
 }
 
-export async function close() {
-    mongoose.connection.close()
-    .then(res => {
-        //if(res) {
-            console.info(`Disconected`);
-        //}
-    }).catch(err => {
-        console.error(err)
-    });
+export async function disconnectDB(): Promise<void> {
+  if (global.mongooseConn) {
+    await mongoose.disconnect();
+    global.mongooseConn = undefined;
+    console.info("❌ Desconectado do MongoDB");
+  }
 }

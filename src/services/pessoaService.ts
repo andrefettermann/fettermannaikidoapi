@@ -2,14 +2,30 @@
 import { convertDdMmYyyyToDate, formatDateDDMMAAAA } from '../utils/date';
 import * as repositorio from '../respositories/pessoaRepository';
 import { decripta, encripta } from '../utils/crypto';
+import { IPessoa } from 'src/models/pessoa';
+import { Decimal128, ObjectId } from 'mongoose';
 
-function setDoc(osDados: any) {
+interface IPromocao {
+    'data': Date, 
+    'id_graduacao': ObjectId
+}
+
+interface IPagamento {
+    'data': Date,
+    'valor_devido': any,
+    'valor_pago': Decimal128,
+    'descricao': String,
+    'observacoes': String
+}
+
+function setDoc(osDados: any): IPessoa {
+    
     var totalPromocoes = osDados.total_promocoes;
     var totalPagamentos = osDados.total_pagamentos;
 
-    var doc = {};
+    //var doc = {};
 
-    var doc_promocoes = [];
+    var doc_promocoes: IPromocao[] = [];
     if (totalPromocoes > 0) {
         for (var i=0; i<osDados.total_promocoes; i++) {
             var graduacao = osDados['id_graduacao_promocao_' + (i+1)];
@@ -24,32 +40,36 @@ function setDoc(osDados: any) {
         }
     }
 
-    var doc_pagamentos = [];
+    var doc_pagamentos: IPagamento[] = [];
     if (totalPagamentos > 0) {
         for (var i=0; i<osDados.total_pagamentos; i++) {
             let data = osDados['data_pagamento_' + (i+1)];
             if (data) {
-                var doc_pagamento = {
+                var doc_pagamento: IPagamento = {
                     'data': convertDdMmYyyyToDate(
                         osDados['data_pagamento_' + (i+1)]),
-                    'valor_pago': Number.parseFloat(
-                        osDados['valor_pagamento_' + (i+1)]),
-                    'descricao': osDados['descricao_pagamento_' + (i+1)]
+                    'valor_pago': osDados['valor_pagamento_' + (i+1)],
+                    //Number.parseFloat(
+                    //    osDados['valor_pagamento_' + (i+1)]),
+                    'valor_devido': '0.0',
+                    'descricao': osDados['descricao_pagamento_' + (i+1)],
+                    'observacoes': ''
                 }
+                
                 doc_pagamentos.push(doc_pagamento);
             }
         }
     }
 
-    doc = {
+    const doc: IPessoa = {
         'aniversario': osDados.aniversario,
         'matricula': osDados.matricula,
-        'nome': encripta(osDados.nome),
+        'nome': osDados.nome==''?osDados.nome:encripta(osDados.nome),
         'situacao': osDados.situacao,
         'cpf': osDados.cpf===''?'':encripta(osDados.cpf),
         'data_inicio_aikido': osDados.data_inicio,
         'data_matricula': osDados.data_matricula,
-        'tipo_pessoa': osDados.tipo_pessoa,
+        'tipo': osDados.tipo,
         //'is_professor': osDados.is_professor?true:false,
         'id_dojo': osDados.id_dojo == ''?null:osDados.id_dojo,
         'id_graduacao': osDados.id_graduacao,
@@ -166,7 +186,8 @@ export async function buscaSituacao(aSituacao: string): Promise<any> {
 
 export async function buscaProfessores(): Promise<any> {
     try {
-        const resposta: any = await repositorio.findByIsProfessor(true);
+        //const resposta: any = await repositorio.findByIsProfessor(true);
+        const resposta: any = await repositorio.findByTipo('professor');
         if (resposta.sucesso) {
 
             resposta.docs.forEach((element: any) => {
@@ -199,12 +220,32 @@ export async function buscaProfessores(): Promise<any> {
     }
 }
 
+function trataException(exception: any): string {
+    var mensagem = '';
+    if (exception.name === 'ValidationError') {
+        // Para um campo específico
+        //const mensagemNome = exception.errors.nome?.message;
+        //console.log(mensagemNome); // "O nome é obrigatório"
+        //return mensagemNome;
+        
+        // Ou percorrer todos os erros
+        
+        Object.keys(exception.errors).forEach(campo => {
+            //console.log(exception.errors[campo].message);
+            mensagem = exception.errors[campo].message;
+        });
+        
+    }    
+    return mensagem;
+}
+
 export async function inclui(osDados: any): Promise<any> {
-    const dados = setDoc(osDados);
+    const dados: IPessoa = setDoc(osDados);
     try {
         return await repositorio.insert(dados);
     } catch (error) {
-        throw error;
+        throw new Error(trataException(error));
+        //throw error;
     }
 }
 

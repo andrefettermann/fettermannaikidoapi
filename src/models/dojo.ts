@@ -29,7 +29,7 @@ interface IDojo {
 const DojoSchema = new Schema<IDojo>({
     nome: {
         type: String,
-        required: true
+        required: [true, 'O nome é obrigatório.'],
     },
     local: {
         type: String,

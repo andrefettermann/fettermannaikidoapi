@@ -132,6 +132,35 @@ export  async function findByIsProfessor(isProfessor: boolean): Promise<any> {
     }
 }
 
+export async function findByTipo(oTipo: string): Promise<any> {
+    const tipo = oTipo;
+    try {
+        await connectDB();
+        const result: IPessoa[] = await Pessoa.aggregate([
+            {
+                $match: {'tipo': tipo}
+            },  
+            lookupDojo,
+            lookupGraduacao
+            //{$unwind: '$dojo'},
+        ]);
+        
+        if (result) {
+            return {
+                sucesso: true,
+                docs: result
+            }
+        } else {
+            return {
+                sucesso: false,
+                erro: "Erro ao ler os dados"
+            }
+        }
+    } catch(error){
+        throw error;
+    }
+}
+
 export async function findByAniversario(mes: string): Promise<any> {
     try {
         await connectDB();
@@ -179,7 +208,7 @@ export async function findByIdDojo(id: string): Promise<any> {
     }
 }
 
-export async function insert(doc: any): Promise<any>{
+export async function insert(doc: IPessoa): Promise<any>{
     try {
         await connectDB();
 
@@ -205,7 +234,13 @@ export async function update(id: string, doc: any): Promise<any>{
         await connectDB();
 
         const result = await Pessoa.findByIdAndUpdate(
-            {"_id":id}, doc, {new: true})
+            {"_id":id},
+            doc,
+            {
+                new: true,
+                runValidators: true
+            }
+        )
         if(result){
             return {
                 sucesso: true,

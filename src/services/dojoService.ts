@@ -78,12 +78,30 @@ export async function buscaTodos(): Promise<any> {
     }
 }
 
+function trataException(exception: any): string {
+    if (exception.name === 'ValidationError') {
+        // Para um campo específico
+        const mensagemNome = exception.errors.nome?.message;
+        //console.log(mensagemNome); // "O nome é obrigatório"
+        return mensagemNome;
+        
+        // Ou percorrer todos os erros
+        /*
+        Object.keys(exception.errors).forEach(campo => {
+            console.log(exception.errors[campo].message);
+        });
+        */
+    }    
+    return '';
+}
+
 export async function inclui(osDados: any): Promise<any> {
     const dados: IDojo = setDoc(osDados);
     try {
         return await repositorio.insert(dados);
-    } catch (error) {
-        throw error;
+    } catch (error: any) {
+        throw new Error(trataException(error));
+        //throw error;
     }
 }
 
@@ -92,9 +110,10 @@ export async function atualiza(oId: string, osDados: any): Promise<any> {
     const dados: IDojo = setDoc(osDados);
 
     try {
-        return await repositorio.update(id, dados);
-    } catch (error) {
-        throw error;
+        const resposta: any = await repositorio.update(id, dados);
+        return resposta;
+    } catch (error) {        
+        throw new Error(trataException(error));
     }
 
 }
