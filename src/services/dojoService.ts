@@ -1,0 +1,101 @@
+// services/dojoService.ts
+import { IDojo } from 'src/models/dojo';
+import * as repositorio from '../respositories/dojoRepository';
+import { decripta } from '../utils/crypto';
+
+function setDoc(osDados: any): IDojo {
+    var dojo: IDojo = {
+        'nome': osDados.nome,
+        'local': osDados.local,
+        'endereco': osDados.endereco,
+        'bairro': osDados.bairro,
+        'cidade': osDados.cidade,
+        'uf': osDados.uf,
+        'pais': osDados.pais,
+        'url': osDados.url,
+        'email': osDados.email,
+        'id_professor': osDados.id_professor==""?null:osDados.id_professor,
+        'horarios': osDados.horarios
+    };
+
+    return dojo;
+}
+
+export async function busca(oId: string): Promise<any> {
+    const id = oId;
+    try {
+        const response: any = await repositorio.find(id);
+        if (response.sucesso) {
+
+            if (response.doc.id_professor) {
+                response.doc.id_professor = response.doc.id_professor.toString();
+            }
+            
+            if (response.doc.professor[0]) {
+                response.doc.professor[0].nome = 
+                    decripta(response.doc.professor[0].nome);
+            }
+
+            response.doc.alunos.forEach((a: any) => {
+                a.nome = decripta(a.nome);
+            })
+
+            return {
+                sucesso: true,
+                doc: response.doc
+            };
+        } else {
+            return response;
+        }        
+    } catch (error) {
+        throw error;
+    }
+}
+
+export async function buscaTodos(): Promise<any> {
+    try {
+        const resposta = await repositorio.findAll();
+        if (resposta.sucesso) {
+            resposta.docs.forEach((element: any) => {
+                if (element.id_professor) {
+                    element.id_professor = element.id_professor.toString();
+                }
+
+                element.professor.forEach((p: any) =>{
+                    if (p.nome) p.nome = decripta(p.nome);
+                })
+            });
+
+            return {
+                sucesso: true,
+                docs: resposta.docs
+            };
+        } else {
+            return resposta;
+        }        
+    } catch (error) {
+        throw error;
+    }
+}
+
+export async function inclui(osDados: any): Promise<any> {
+    const dados: IDojo = setDoc(osDados);
+    try {
+        return await repositorio.insert(dados);
+    } catch (error) {
+        throw error;
+    }
+}
+
+export async function atualiza(oId: string, osDados: any): Promise<any> {
+    const id = oId;
+    const dados: IDojo = setDoc(osDados);
+
+    try {
+        return await repositorio.update(id, dados);
+    } catch (error) {
+        throw error;
+    }
+
+}
+
