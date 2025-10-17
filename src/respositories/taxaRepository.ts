@@ -12,7 +12,7 @@ const MENSAGEM_ERRO_LER = "Erro ao ler os dados";
 const MENSAGEM_ERRO_INCLUIR = "Erro ao incluir os dados";
 const MENSAGEM_ERRO_ATUALIZAR = "Erro ao atualizar os dados";
 
-export async function find(id: string) {
+export async function find(id: string): Promise<any> {
     try {
         await connectDB();
         const response: ITaxa[] | null = await Taxa.findById(id);
@@ -32,7 +32,7 @@ export async function find(id: string) {
     }
 }
 
-export async function findAll(){
+export async function findAll(): Promise<any>{
     try{
         await connectDB();
 
@@ -54,7 +54,7 @@ export async function findAll(){
     }
 }
 
-export async function insert(data: ITaxa){
+export async function insert(data: ITaxa): Promise<any>{
     try {
         await connectDB();
 
@@ -80,7 +80,14 @@ export async function update(id: string, data: any){
         await connectDB();
 
         const result = 
-            await Taxa.findByIdAndUpdate({"_id":id}, data, {new: true})
+            await Taxa.findByIdAndUpdate(
+                {"_id":id}, 
+                data, 
+                {
+                    new: true,
+                    runValidators: true
+                }
+            )
         if(result){
             return {
                 sucesso: true,
@@ -95,15 +102,4 @@ export async function update(id: string, data: any){
     } catch(error){
         throw error;
     }
-}
-
-export async function deleteGraduacao(id: String) {
-    try {
-        await connectDB();
-        const result = await Taxa.deleteOne({"_id":id});
-        return result;
-    } catch(error){
-        return error;
-    }
-
 }

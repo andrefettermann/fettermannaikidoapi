@@ -4,6 +4,7 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
+    "test:features": "cucumber-js features/**/*.feature",
     "dev": "npx nodemon src/server.ts --watch 'src/' -e ts",
     "compile": "npx tsc",
     "start": "node ./dist/server.js"
@@ -13,6 +14,7 @@
   "license": "ISC",
   "description": "Uma aplicação simples para controle dos alunos de Aikidô.",
   "dependencies": {
+    "@cucumber/cucumber": "^12.2.0",
     "@types/cookie-parser": "^1.4.9",
     "@types/jsonwebtoken": "^9.0.10",
     "cookie-parser": "^1.4.7",

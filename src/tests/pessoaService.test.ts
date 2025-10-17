@@ -31,9 +31,27 @@ describe('Testes unitarios do servico de pessoa', () => {
     }
   })
 
-  test('deveria retornar os professores caastrados', async () => {
+  test('deveria retornar os professores cadastrados', async () => {
       try {
         const response: any = await servico.buscaProfessores();
+        expect(response.sucesso).toBe(true);
+      } catch (err) {
+        expect(err).toBeNull();
+      }
+  })
+
+  test('deveria retornar as pessoas inativas', async () => {
+      try {
+        const response: any = await servico.buscaSituacao('Inativo');
+        expect(response.sucesso).toBe(true);
+      } catch (err) {
+        expect(err).toBeNull();
+      }
+  })
+
+  test('deveria retornar os aniversariantes do mes', async () => {
+      try {
+        const response: any = await servico.buscaAniversariantes('10');
         expect(response.sucesso).toBe(true);
       } catch (err) {
         expect(err).toBeNull();
@@ -143,30 +161,86 @@ describe('Testes unitarios do servico de pessoa', () => {
   })
 
   test('nao deveria alterar sem o nome', async() => {
-    const id = '68ebce8261b7577bf5c16db2'
+    const id = '68e008ca2abd0edcc52945bf'
     const doc = {
+      aniversario: '01/01',
+      matricula: '0000',
       nome: '',
-      local: 'Local - Teste unitario de inclusao',
-      bairro: 'Bairro - Teste unitario de inclusao',
-      cidade: 'Cidade - Teste unitario de inclusao',
-      uf: 'UF - Teste unitario de inclusao',
-      pais: 'País - Teste unitario de inclusao',
-      endereco: 'Endereco - Teste unitario de inclusao',
-      id_professor: '6876d21a80066b9538e06444',
-      url: 'URL - Teste unitario de inclusao',
-      email: 'E-mail - Teste unitario de inclusao',
-      horarios: 'Horarios - Teste unitario de inclusao'
+      situacao: 'Ativo',
+      cpf: '123.456.789-10',
+      data_inicio_aikido: '01/01',
+      data_matricula: '01/01',
+      tipo: 'aluno',
+      id_dojo: '688bf3b6670789903d6d15e4',
+      id_graduacao: '687ec73055e3bc2dd43036f0',
+      total_promocoes: 1,
+      total_pagamentos: 1,
+      data_pagamento_1: '01/01/2025',
+      valor_pagamento_1: '10.1',
+      descricao_pagamento_1: 'Teste',
+      data_promocao_1: '01/01/2025',
+      id_graduacao_promocao_1: '687ec73055e3bc2dd43036f0'
     };
 
     await expect(servico.atualiza(id, doc)).rejects.toThrow('O nome é obrigatório.');
   })
 
-  test('deveria alterar com sucesso', async() => {
-    const id = '68ec1fe0a55de2e63abe5b0c'
+  test('nao deveria alterar sem a situacao', async() => {
+    const id = '68e008ca2abd0edcc52945bf'
     const doc = {
       aniversario: '01/01',
       matricula: '0000',
-      nome: 'Nome - Teste unitário de alteracao',
+      nome: 'Teste unitario de alteracao',
+      situacao: '',
+      cpf: '123.456.789-10',
+      data_inicio_aikido: '01/01',
+      data_matricula: '01/01',
+      tipo: 'aluno',
+      id_dojo: '688bf3b6670789903d6d15e4',
+      id_graduacao: '687ec73055e3bc2dd43036f0',
+      total_promocoes: 1,
+      total_pagamentos: 1,
+      data_pagamento_1: '01/01/2025',
+      valor_pagamento_1: '10.1',
+      descricao_pagamento_1: 'Teste',
+      data_promocao_1: '01/01/2025',
+      id_graduacao_promocao_1: '687ec73055e3bc2dd43036f0'
+    };
+
+    await expect(servico.atualiza(id, doc)).rejects.toThrow('A situação é obrigatória.');
+  })
+
+  test('nao deveria alterar sem o tipo', async() => {
+    const id = '68e008ca2abd0edcc52945bf'
+    const doc = {
+      aniversario: '01/01',
+      matricula: '0000',
+      nome: 'Teste unitario de alteracao',
+      situacao: 'Ativo',
+      cpf: '123.456.789-10',
+      data_inicio_aikido: '01/01',
+      data_matricula: '01/01',
+      tipo: '',
+      id_dojo: '688bf3b6670789903d6d15e4',
+      id_graduacao: '687ec73055e3bc2dd43036f0',
+      total_promocoes: 1,
+      total_pagamentos: 1,
+      data_pagamento_1: '01/01/2025',
+      valor_pagamento_1: '10.1',
+      descricao_pagamento_1: 'Teste',
+      data_promocao_1: '01/01/2025',
+      id_graduacao_promocao_1: '687ec73055e3bc2dd43036f0'
+    };
+
+    await expect(servico.atualiza(id, doc)).rejects.toThrow('O tipo é obrigatório.');
+  })
+
+  test('deveria alterar com sucesso', async() => {
+    const id = ''
+    const doc = {
+      aniversario: '01/01',
+      matricula: '0000',
+      nome: '',
       situacao: 'Ativo',
       cpf: '123.456.789-10',
       data_inicio_aikido: '01/01',
@@ -177,7 +251,7 @@ describe('Testes unitarios do servico de pessoa', () => {
       total_promocoes: 1,
       total_pagamentos: 1,
       data_pagamento_1: '01/01/2025',
-      valor_pagamento_1: '20.2',
+      valor_pagamento_1: '10.1',
       descricao_pagamento_1: 'Teste',
       data_promocao_1: '01/01/2025',
       id_graduacao_promocao_1: '687ec73055e3bc2dd43036f0'

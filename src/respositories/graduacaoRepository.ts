@@ -65,7 +65,7 @@ export async function findAll(): Promise<any>{
     }
 }
 
-export async function insert(data: any): Promise<any> {
+export async function insert(data: IGraduacao): Promise<any> {
     try {
         await connectDB();
 
@@ -86,12 +86,19 @@ export async function insert(data: any): Promise<any> {
     }
 };
 
-export async function update(id: string, data: any): Promise<any>{
+export async function update(id: string, data: IGraduacao): Promise<any>{
     try{
         await connectDB();
 
         const result: IGraduacao | null = 
-            await Graduacao.findByIdAndUpdate({"_id":id}, data, {new: true})
+            await Graduacao.findByIdAndUpdate(
+                {"_id":id}, 
+                data, 
+                {
+                    new: true,
+                    runValidators: true
+                }
+            )
         if(result){
             return {
                 sucesso: true,

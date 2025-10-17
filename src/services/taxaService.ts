@@ -10,7 +10,7 @@ function setDoc(osDados: any): ITaxa {
         'is_ativa': osDados.is_ativa?true:false,
         'is_recorrente': osDados.is_recorrente?true:false,
         'periodicidade': osDados.periodicidade,
-        'valor_padrao': osDados.valor_padrao?osDados.valor_padrao:0.0
+        'valor_padrao': osDados.valor_padrao?osDados.valor_padrao.replace(',', '.'):0,
     };
 
     return taxa;
@@ -33,12 +33,31 @@ export async function buscaTodos(): Promise<any> {
     }
 }
 
+function trataException(exception: any): string {
+    var mensagem = '';
+    if (exception.name === 'ValidationError') {
+        // Para um campo específico
+        //const mensagemNome = exception.errors.nome?.message;
+        //console.log(mensagemNome); // "O nome é obrigatório"
+        //return mensagemNome;
+        
+        // Ou percorrer todos os erros
+        
+        Object.keys(exception.errors).forEach(campo => {
+            //console.log(exception.errors[campo].message);
+            mensagem = exception.errors[campo].message;
+        });
+        
+    }    
+    return mensagem;
+}
+
 export async function inclui(osDados: any): Promise<any> {
     const dados: ITaxa = setDoc(osDados);
     try {
         return await repositorio.insert(dados);
     } catch (error) {
-        throw error;
+        throw new Error(trataException(error));
     }
 }
 
@@ -49,7 +68,7 @@ export async function atualiza(oId: string, osDados: any): Promise<any> {
     try {
         return await repositorio.update(id, dados);
     } catch (error) {
-        throw error;
+        throw new Error(trataException(error));
     }
 
 }

@@ -265,6 +265,7 @@ export async function busca(oId: string): Promise<any> {
     const id = oId;
     try {
         const resposta: any = await repositorio.find(id);
+        //console.log(resposta)
         if (resposta.sucesso) {
             let pessoa = resposta.doc;
             pessoa.nome = decripta(pessoa.nome);
@@ -277,7 +278,7 @@ export async function busca(oId: string): Promise<any> {
             if (pessoa.id_dojo) {
                 pessoa.id_dojo = pessoa.id_dojo.toString();
             }
-
+/*
             pessoa.promocoes.forEach(async (p: any) => {
                 p.data_formatada = formatDateDDMMAAAA(p.data);
                 if (p._id) {
@@ -288,7 +289,7 @@ export async function busca(oId: string): Promise<any> {
             pessoa.pagamentos.forEach((p: any) => {
                 p.data_formatada = formatDateDDMMAAAA(p.data);
             });
-
+*/
             return {
                 sucesso: true,
                 doc: pessoa

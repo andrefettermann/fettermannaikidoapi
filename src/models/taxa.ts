@@ -26,11 +26,11 @@ interface ITaxa {
 const TaxaSchema = new Schema<ITaxa>({
     tipo: {
         type: String,
-        required: true
+        required: [true, 'O tipo é obrigatório.']
     },
     nome: {
         type: String,
-        required: true
+        required: [true, 'O nome é obrigatório.']
     },
     descricao: {
         type: String,

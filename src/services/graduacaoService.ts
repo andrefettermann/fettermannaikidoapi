@@ -1,10 +1,15 @@
-// services/taxaService.ts
+// src/services/taxaService.ts
+import { IGraduacao } from 'src/models/graduacao';
 import * as repositorio from '../respositories/graduacaoRepository';
 import { decripta } from '../utils/crypto';
 
-function setDoc(osDados: any) {
+interface ITecnica {
+    nome: string
+}
+
+function setDoc(osDados: any): IGraduacao {
     var totalTecnicas = osDados.total_tecnicas;
-    var doc_tecnicas = [];
+    var doc_tecnicas: ITecnica[] = [];
     if (totalTecnicas > 0) {
         for (var i=0; i<osDados.total_tecnicas; i++) {
             var nome = osDados['nome_' + (i+1)];
@@ -13,8 +18,8 @@ function setDoc(osDados: any) {
         }
     }
     
-    var doc = {
-        'sequencia': parseInt(osDados.sequencia),
+    var doc: IGraduacao = {
+        'sequencia': osDados.sequencia?parseInt(osDados.sequencia):osDados.sequencia,
         'nome': osDados.nome,
         'faixa': osDados.faixa,
         'minimo_horas_treino_exame': parseInt(osDados.horas_exame),
@@ -81,40 +86,41 @@ export async function buscaTodos() {
     }
 }
 
+function trataException(exception: any): string {
+    var mensagem = '';
+    if (exception.name === 'ValidationError') {
+        // Para um campo específico
+        //const mensagemNome = exception.errors.nome?.message;
+        //console.log(mensagemNome); // "O nome é obrigatório"
+        //return mensagemNome;
+        
+        // Ou percorrer todos os erros
+        
+        Object.keys(exception.errors).forEach(campo => {
+            //console.log(exception.errors[campo].message);
+            mensagem = exception.errors[campo].message;
+        });
+        
+    }    
+    return mensagem;
+}
+
 export async function inclui(osDados: any) {
-    const dados = setDoc(osDados);
+    const dados: IGraduacao = setDoc(osDados);
     try {
-        const result: any = await repositorio.insert( dados);
-        console.log(result)
-        if (result.sucesso) {
-            return {
-                sucesso: true,
-                docs: result.docs
-            };            
-        } else {
-            throw result.error;
-        }
+        return await repositorio.insert( dados);
     } catch (error) {
-        throw error;
+        throw new Error(trataException(error));
     }
 }
 
 export async function atualiza(oId: string, osDados: any) {
     const id = oId;
-    const dados = setDoc(osDados) ;
+    const dados: IGraduacao = setDoc(osDados) ;
 
     try {
-        const response: any = 
-            await repositorio.update(id, dados);
-        if (response.sucesso) {
-            return {
-                sucesso: true,
-                docs: response.docs
-            };
-        } else {
-            throw response.error;
-        }
+        return await repositorio.update(id, dados);
     } catch (error) {
-        throw error;
+        throw new Error(trataException(error));
     }
 }

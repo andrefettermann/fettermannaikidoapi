@@ -22,6 +22,7 @@ export async function buscaTodos(req: Request, res: Response, next: NextFunction
 export async function busca(req: Request, res: Response, next: NextFunction) {
     try {
         const resposta: any = await servico.busca(req.params.id);
+
         if (resposta) {
             if (resposta.sucesso) {
                 return res.status(200).send(resposta.doc)
@@ -32,6 +33,7 @@ export async function busca(req: Request, res: Response, next: NextFunction) {
             res.status(500).json({ mensagem: "Erro ao ler os dados" });
         }
     } catch (error) {
+        console.log(error)
         res.status(500).json({ error });
     }
 }

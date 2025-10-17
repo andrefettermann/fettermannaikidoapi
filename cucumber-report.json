@@ -1,0 +1,68 @@
+[
+  {
+    "description": "",
+    "elements": [
+      {
+        "description": "",
+        "id": "lista-de-cobrancas;carrega-as-cobrancas-cadastradas-para-uma-pessoa",
+        "keyword": "Cenario",
+        "line": 36,
+        "name": "Carrega as cobrancas cadastradas para uma pessoa",
+        "steps": [
+          {
+            "arguments": [],
+            "keyword": "Dado ",
+            "line": 37,
+            "name": "que existem cobrancas cadastradas para a pessoa com o id '6876d21a80066b9538e06444'",
+            "match": {
+              "location": "features/steps/cobrancasSteps.ts:32"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 636416
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Quando ",
+            "line": 38,
+            "name": "buscar as cobrancas cadastradas para a pessoa",
+            "match": {
+              "location": "features/steps/cobrancasSteps.ts:135"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 142023489
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Entao ",
+            "line": 39,
+            "name": "deveriam ser retornadas todas as cobrancas cadastradas para a pessoa",
+            "match": {
+              "location": "features/steps/cobrancasSteps.ts:163"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 542903
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@consulta_04",
+            "line": 35
+          }
+        ],
+        "type": "scenario"
+      }
+    ],
+    "id": "lista-de-cobrancas",
+    "line": 17,
+    "keyword": "Funcionalidade",
+    "name": "Lista de cobrancas",
+    "tags": [],
+    "uri": "features/cobrancas_consulta.feature"
+  }
+]

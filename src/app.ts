@@ -6,6 +6,7 @@ import pessoasRoute from './routes/pessoasRouter';
 import taxasRoute from './routes/taxasRouter';
 import dojosRoute from './routes/dojosRouter';
 import graduacoesRoute from './routes/graduacoesRouter';
+import cobrancasRoute from './routes/cobrancasRouter';
 import { generateToken } from './services/authService';
 import dotenv from 'dotenv'
 
@@ -61,6 +62,7 @@ app.post('/gera-token', basicAuth, (req, res) => {
 app.use('/api/pessoas', pessoasRoute);
 app.use('/api/taxas', taxasRoute);
 app.use('/api/dojos', dojosRoute);
+app.use('/api/cobrancas', cobrancasRoute);
 app.use('/api/graduacoes', graduacoesRoute);
 
 app.use((error: Error, req: Request, res: Response, next: NextFunction) => {

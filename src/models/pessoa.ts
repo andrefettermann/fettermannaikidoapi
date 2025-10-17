@@ -19,6 +19,7 @@ interface IPessoa {
     //is_professor: boolean,
     id_dojo: ObjectId,
     id_graduacao: ObjectId,
+    /*
     pagamentos: {
         data: Date,
         valor_devido: Decimal128,
@@ -26,6 +27,7 @@ interface IPessoa {
         descricao: String,
         observacoes: String
     }[],
+    */
     promocoes: {
         data: Date,
         id_graduacao: ObjectId
@@ -87,6 +89,7 @@ const PessoaSchema = new Schema<IPessoa>({
         default: null,
         required: false
     },
+    /*
     pagamentos: [
         {
             data: {
@@ -111,6 +114,7 @@ const PessoaSchema = new Schema<IPessoa>({
             },
         }
     ],
+    */
     promocoes: [
         {
             data: {

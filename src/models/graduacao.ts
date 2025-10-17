@@ -9,17 +9,17 @@ interface IGraduacao {
     minimo_tempo_exame: number,
     categoria: string,
     observacoes: string,
-    tecnicas: [ { nome: string } ]
+    tecnicas: { nome: string } []
 };
 
 const GraduacaoSchema = new Schema<IGraduacao>({
     sequencia: {
         type: Number,
-        required: true
+        required: [true, 'A sequência é obrigatória.']
     },
     nome: {
         type: String,
-        required: true
+        required: [true, 'O nome é obrigatório.']
     },
     faixa: {
         type: String,
@@ -35,15 +35,19 @@ const GraduacaoSchema = new Schema<IGraduacao>({
     },
     categoria: {
         type: String,
-        required: true
+        required: [true, 'A categoria é obrigatória.']
     },
     observacoes: {
         type: String,
         required: false
     },
     tecnicas : {
-        type: [ { nome: {type: String, required: false} } ],
-        required: false
+        type: [ { 
+            nome: {
+                type: String, 
+                required: false
+            } 
+        } ],
     }
 })
 

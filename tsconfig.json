@@ -13,5 +13,5 @@
     "skipLibCheck": true
   },
   "ts-node": { "transpileOnly": true },
-  "include": ["src/**/*.ts", "src/tests/**/*.test.ts"]
+  "include": ["src/**/*.ts", "src/tests/**/*.test.ts", "features/**/*.ts"]
 }
