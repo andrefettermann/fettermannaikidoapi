@@ -74,7 +74,6 @@ function setDoc(osDados: any): IPessoa {
         'id_dojo': osDados.id_dojo == ''?null:osDados.id_dojo,
         'id_graduacao': osDados.id_graduacao,
         'promocoes': doc_promocoes,
-        'pagamentos': doc_pagamentos
     }
 
     return doc;
