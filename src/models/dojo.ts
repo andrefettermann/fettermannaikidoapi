@@ -18,7 +18,8 @@ interface IDojo {
     url: string,
     email: string,
     id_professor: ObjectId,
-    horarios: string
+    horarios: string,
+    is_ativo: boolean,
 };
 
 /**
@@ -69,6 +70,10 @@ const DojoSchema = new Schema<IDojo>({
     },
     horarios: {
         type: String,
+        required: false
+    },
+    is_ativo: {
+        type: Boolean,
         required: false
     }
 

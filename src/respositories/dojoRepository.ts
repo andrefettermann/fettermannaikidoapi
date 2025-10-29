@@ -36,6 +36,7 @@ const projectDojos = {
         endereco: 1,
         cidade: 1,
         uf: 1,
+        is_ativo: 1,
         'professor.nome': 1,
         horarios: 1
     } 
@@ -54,6 +55,7 @@ const projectDojo = {
         url: 1,
         email: 1,
         horarios: 1,
+        is_ativo: 1,
         id_professor: 1,
         'professor.nome': 1,
         alunos: 1
@@ -115,6 +117,34 @@ export async function findAll(): Promise<any> {
         }
     } catch(error) {
         throw (error);
+    }
+}
+
+export  async function findByIsAtivo(ativo: boolean): Promise<any> {
+    try {
+        await connectDB();
+        const result: IDojo[] = await Dojo.aggregate([
+                    {
+                        $match: {'is_ativo': ativo}
+                    },  
+                    lookupProfessor,
+                    projectDojos,
+                    //{$unwind: '$dojo'},
+                ]);
+        
+        if (result) {
+            return {
+                sucesso: true,
+                docs: result
+            }
+        } else {
+            return {
+                sucesso: false,
+                erro: "Erro ao ler os dados"
+            }
+        }
+    } catch(error){
+        throw error;
     }
 }
 

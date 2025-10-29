@@ -16,6 +16,10 @@ router.get('/busca/:id', authenticate, controller.busca);
 
 router.get('/lista/todos', authenticate, controller.buscaTodos);
 
+router.get('/lista/ativos', authenticate, controller.buscaAtivos)
+
+router.get('/lista/inativos', authenticate, controller.buscaInativos)
+
 router.post('/inclui', authenticate, controller.inclui);
 
 router.patch('/altera/:id', authenticate, controller.atualiza);

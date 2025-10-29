@@ -16,18 +16,8 @@ interface IPessoa {
     data_inicio_aikido: string,
     data_matricula: string,
     tipo: string,
-    //is_professor: boolean,
     id_dojo: ObjectId,
     id_graduacao: ObjectId,
-    /*
-    pagamentos: {
-        data: Date,
-        valor_devido: Decimal128,
-        valor_pago: Decimal128,
-        descricao: String,
-        observacoes: String
-    }[],
-    */
     promocoes: {
         data: Date,
         id_graduacao: ObjectId
@@ -73,12 +63,6 @@ const PessoaSchema = new Schema<IPessoa>({
         type: String,
         required: [true, 'O tipo é obrigatório.'],
     },
-    /*
-    is_professor: {
-        type: Boolean,
-        required: false
-    },
-    */
     id_dojo: {
         type: mongodb.ObjectId,
         default: null,
@@ -89,32 +73,6 @@ const PessoaSchema = new Schema<IPessoa>({
         default: null,
         required: false
     },
-    /*
-    pagamentos: [
-        {
-            data: {
-                type: Date,
-                required: [true, 'A data de pagamento é obrigatória.'],
-            },
-            valor_devido: {
-                type: mongodb.Decimal128,
-                required: false
-            },
-            valor_pago: {
-                type: mongodb.Decimal128,
-                required: [true, 'O valor pago é obrigatório.'],
-            },
-            descricao: {
-                type: String,
-                required: false
-            },
-            observacoes: {
-                type: String,
-                required: false
-            },
-        }
-    ],
-    */
     promocoes: [
         {
             data: {
