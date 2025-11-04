@@ -1,6 +1,11 @@
-// services/taxaService.ts
+/**
+ * src/services/taxaService.ts
+ */
+
 import { ITaxa } from 'src/models/taxa';
 import * as repositorio from '../respositories/taxaRepository';
+import { IResultado } from '../models/resultado'
+
 
 function setDoc(osDados: any): ITaxa {
     var taxa: ITaxa = {
@@ -16,18 +21,29 @@ function setDoc(osDados: any): ITaxa {
     return taxa;
 }
 
-export async function busca(oId: string): Promise<any> {
+export async function busca(oId: string): Promise<IResultado> {
     const id = oId;
     try {
-        return await repositorio.find(id);
+        const response = await repositorio.find(id);
+        if (!response.sucesso || !response.doc) return response;
+
+        const doc = response.doc;
+
+        return { sucesso: true, doc }
     } catch (error) {
         throw error;
     }
 }
 
-export async function buscaTodos(): Promise<any> {
+export async function buscaTodos(): Promise<IResultado> {
     try {
-        return await repositorio.findAll();
+        const response = await repositorio.findAll();
+        if (!response.sucesso || !Array.isArray(response.docs)) return response;
+
+        return {
+            sucesso: true,
+            docs: response.docs
+        };
     } catch (error) {
         throw error;
     }
@@ -52,12 +68,28 @@ function trataException(exception: any): string {
     return mensagem;
 }
 
-export async function inclui(osDados: any): Promise<any> {
+export async function inclui(osDados: any): Promise<IResultado> {
     const dados: ITaxa = setDoc(osDados);
     try {
-        return await repositorio.insert(dados);
+        const response = await repositorio.insert(dados);
+        if (!response) {
+            return {
+                sucesso: false,
+                mensagem: 'Erro ao incluir os dados',
+                erro: undefined
+            };
+        }
+
+        return {
+            sucesso: true,
+            doc: response.doc
+        };
     } catch (error) {
-        throw new Error(trataException(error));
+        //throw new Error(trataException(error));
+        return {
+            sucesso: false,
+            mensagem: trataException(error)
+        }
     }
 }
 
@@ -66,10 +98,25 @@ export async function atualiza(oId: string, osDados: any): Promise<any> {
     const dados = setDoc(osDados);
 
     try {
-        return await repositorio.update(id, dados);
-    } catch (error) {
-        throw new Error(trataException(error));
-    }
+        const response = await repositorio.update(id, dados);
+        if (!response.sucesso || !response.doc) {
+            return {
+                sucesso: false,
+                mensagem: 'Erro ao atualizar os dados',
+            };
+        }
 
+        return {
+            sucesso: true,
+            doc: response.doc
+        };
+
+    } catch (error) {
+        //throw new Error(trataException(error));
+        return {
+            sucesso: false,
+            mensagem: trataException(error)
+        }
+    }
 }
 

@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
-    "test:features": "cucumber-js features/**/*.feature",
+    "test:features": "cucumber-js --config cucumber.js features/**/*.feature",
     "dev": "npx nodemon src/server.ts --watch 'src/' -e ts",
     "compile": "npx tsc",
     "start": "node ./dist/server.js"

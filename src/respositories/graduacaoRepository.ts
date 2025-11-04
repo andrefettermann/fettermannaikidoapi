@@ -2,6 +2,7 @@
 import { ObjectId } from "mongodb";
 import { Graduacao, IGraduacao } from "../models/graduacao";
 import { connectDB } from "../db";
+import { IResultado } from "../models/resultado";
 
 /**
  * Repositorio para graduacao.
@@ -9,106 +10,139 @@ import { connectDB } from "../db";
  * @author Andre Fettermann
  */
 
-const lookupPessoa = {
+const lookupPessoas = {
     $lookup: {
         from: "pessoas",
         localField: "_id",
         foreignField: "id_graduacao",
+        pipeline: [
+            { $project: { _id: 1, nome: 1, situacao: 1 } },
+        ],
         as: "pessoas"
     }
 }
 
-export async function find(id: string): Promise<any> {
+export async function find(id: string): Promise<IResultado> {
+    if (!ObjectId.isValid(id)) {
+        return {
+            sucesso: false,
+            mensagem: "Id inválido"
+        }
+    }
+
+    const pipeline = [
+        { $match: { _id: new ObjectId(id) } },
+        lookupPessoas,
+        { $limit: 1 }
+    ];
+
     try {
         await connectDB();
-        const response: IGraduacao[] = await Graduacao.aggregate([
-                    {
-                        $match: {"_id": new ObjectId(id)}
-                    },
-                    lookupPessoa,
-                ])
-        if (response) {
-            return {
-                sucesso: true,
-                doc: response[0]
-            }
-        } else {
+        const response = await Graduacao.aggregate(pipeline)
+                .allowDiskUse(true)
+                .option({ maxTimeMS: 15000 })
+                .exec();
+
+        if (response.length === 0) {
             return {
                 sucesso: false,
-                erro: "Erro ao ler os dados"
+                mensagem: "Registro não encontrado"
             }
         }
+
+        return {
+            sucesso: true,
+            doc: response[0]
+        }
     }  catch(error) {
-        throw error;
+        if (process.env.NODE_ENV === 'development') {
+            console.error(`Erro em find(id: ${id}):`, error);
+        }
+        
+        return {
+            sucesso: false,
+            mensagem: `Erro ao buscar a graduacao de id ${id}`,
+            erro: error instanceof Error ? error.message : 'Erro desconhecido'
+        };
     }
 }
 
-export async function findAll(): Promise<any>{
+export async function findAll(): Promise<IResultado>{
     try{
         await connectDB();
 
-        const result: IGraduacao[] = await 
-                Graduacao.find({}).sort({ sequencia: 1 }).lean();
-        if (result) {
-            return {
-                sucesso: true,
-                docs: result
-            }
-        } else {
-            return {
-                sucesso: false,
-                erro: "Erro ao ler os dados"
-            }
-        }
+        const response = await Graduacao.aggregate([
+            lookupPessoas,
+            { $sort: { sequencia: 1 } }
+        ])
+        .allowDiskUse(true)
+        .option({ maxTimeMS: 15000 })
+        .exec();
+
+        return {
+            sucesso: true,
+            docs: response
+        };
     } catch(error){
-        throw error;
+        if (process.env.NODE_ENV === 'development') {
+            console.error(`Erro em findAll:`, error);
+        }
+        
+        return {
+            sucesso: false,
+            mensagem: `Erro ao buscar todos os registros`,
+            erro: error instanceof Error ? error.message : 'Erro desconhecido'
+        };
     }
 }
 
-export async function insert(data: IGraduacao): Promise<any> {
+export async function insert(data: IGraduacao): Promise<IResultado> {
     try {
         await connectDB();
 
-        const result: IGraduacao = await Graduacao.create(data);
-        if (result) {
-            return {
-                sucesso: true,
-                id: result
-            }
-        } else {
+        const response = await Graduacao.create(data);
+        if (!response) {
             return {
                 sucesso: false,
-                erro: "Erro ao incluir os dados"
+                mensagem: "Erro ao incluir os dados",
+                erro: "Registro não encontrado"
             }
+        }
+
+        return {
+            sucesso: true,
+            doc: response // ou: { sucesso: true, id: (response as any)._id }
         }
     } catch (error) {
         throw error;
     }
 };
 
-export async function update(id: string, data: IGraduacao): Promise<any>{
+export async function update(id: string, data: IGraduacao): Promise<IResultado>{
     try{
         await connectDB();
 
-        const result: IGraduacao | null = 
+        const response = 
             await Graduacao.findByIdAndUpdate(
-                {"_id":id}, 
+                {"_id": id}, 
                 data, 
                 {
                     new: true,
                     runValidators: true
                 }
             )
-        if(result){
-            return {
-                sucesso: true,
-                total_modificado: result
-            }
-        } else {
+
+        if (!response) {
             return {
                 sucesso: false,
-                erro: "Erro ao atualizar os dados"
+                mensagem: "Erro ao atualizar os dados",
+                erro: "Registro não encontrado"
             }
+        }
+    
+        return {
+            sucesso: true,
+            doc: response
         }
     } catch(error){
         throw error;

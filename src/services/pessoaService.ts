@@ -4,6 +4,7 @@ import * as repositorio from '../respositories/pessoaRepository';
 import { decripta, encripta } from '../utils/crypto';
 import { IPessoa } from 'src/models/pessoa';
 import { Decimal128, ObjectId } from 'mongoose';
+import { IResultado } from 'src/models/resultado';
 
 interface IPromocao {
     'data': Date, 
@@ -40,27 +41,6 @@ function setDoc(osDados: any): IPessoa {
         }
     }
 
-    var doc_pagamentos: IPagamento[] = [];
-    if (totalPagamentos > 0) {
-        for (var i=0; i<osDados.total_pagamentos; i++) {
-            let data = osDados['data_pagamento_' + (i+1)];
-            if (data) {
-                var doc_pagamento: IPagamento = {
-                    'data': convertDdMmYyyyToDate(
-                        osDados['data_pagamento_' + (i+1)]),
-                    'valor_pago': osDados['valor_pagamento_' + (i+1)],
-                    //Number.parseFloat(
-                    //    osDados['valor_pagamento_' + (i+1)]),
-                    'valor_devido': '0.0',
-                    'descricao': osDados['descricao_pagamento_' + (i+1)],
-                    'observacoes': ''
-                }
-                
-                doc_pagamentos.push(doc_pagamento);
-            }
-        }
-    }
-
     const doc: IPessoa = {
         'aniversario': osDados.aniversario,
         'matricula': osDados.matricula,
@@ -70,7 +50,6 @@ function setDoc(osDados: any): IPessoa {
         'data_inicio_aikido': osDados.data_inicio,
         'data_matricula': osDados.data_matricula,
         'tipo': osDados.tipo,
-        //'is_professor': osDados.is_professor?true:false,
         'id_dojo': osDados.id_dojo == ''?null:osDados.id_dojo,
         'id_graduacao': osDados.id_graduacao,
         'promocoes': doc_promocoes,
@@ -86,136 +65,228 @@ function decriptaCpf(cpf: any | null | undefined): string {
     return "";
 }
 
-export async function buscaTodos(): Promise<any> {
+function ordena(docs: any): any {
+    docs.sort((a: { nome: string; }, b: { nome: string; }) => {
+        var fa = a.nome.toLowerCase();
+        var fb = b.nome.toLowerCase();
+
+        if (fa < fb) {
+            return -1;
+        }
+        if (fa > fb) {
+            return 1;
+        }
+        return 0;
+    });
+
+    return docs;
+}
+
+export async function busca(oId: string): Promise<IResultado> {
+    const id = oId;
     try {
-        const resposta: any = await repositorio.findAll();
-        if (resposta.sucesso) {
-            resposta.docs.forEach((doc: any) => {
-                doc._id = doc._id.toString();
-                doc.nome = decripta(doc.nome);
-                doc.cpf = decriptaCpf(doc.cpf);
-            });
+        const response = await repositorio.find(id);
+        if (!response.sucesso || !response.doc) return response;
 
-            resposta.docs.sort((a: { nome: string; }, b: { nome: string; }) => {
-                var fa = a.nome.toLowerCase();
-                var fb = b.nome.toLowerCase();
+        const  doc = response.doc;
 
-                if (fa < fb) {
-                    return -1;
-                }
-                if (fa > fb) {
-                    return 1;
-                }
-                return 0;
-            });
+        doc.nome = decripta(doc.nome);
 
-            return {
-                sucesso: true,
-                docs: resposta.docs
-            };
-        } else {
-            return {
-                sucesso: false,
-                erro: resposta.erro
-            };
-        }        
+        if (doc.cpf) doc.cpf = decriptaCpf(doc.cpf);
+        if (doc.id_graduacao) doc.id_graduacao = doc.id_graduacao.toString();
+        if (doc.id_dojo) doc.id_dojo = doc.id_dojo.toString();
+
+        doc.promocoes.forEach(async (p: any) => {
+            p.data_formatada = formatDateDDMMAAAA(p.data);
+            if (p._id) {
+                p._id = p._id.toString();
+            }
+        });
+
+
+        if (doc.dojo.length == 0) {
+            const dojo = {
+                _id: null,
+                nome: 'Nenhum dojo registrado',
+            }
+            doc.dojo.push(dojo)
+        }
+
+        return {
+            sucesso: true,
+            doc
+        };
     } catch (error) {
-        throw error;
+        console.error(`Erro em busca(oId: ${oId}):`, error);
+        
+        return {
+            sucesso: false,
+            mensagem: `Erro ao buscar a pessoa de id ${id}`,
+            erro: error instanceof Error ? error.message : 'Erro desconhecido'
+        };
+
     }
 }
 
-export async function buscaAniversariantes(oMes: string): Promise<any> {
+function processaElemento(elemento: any): any {
+    elemento._id = elemento._id.toString();
+
+    elemento.nome = decripta(elemento.nome);
+    if (elemento.cpf) elemento.cpf = decriptaCpf(elemento.cpf);
+
+    if (elemento.dojo.length == 0) {
+        const dojo = {
+            _id: null,
+            nome: 'Nenhum dojo registrado',
+        }
+        elemento.dojo.push(dojo)
+    }
+
+
+    return elemento;
+
+}
+
+export async function buscaTodos(): Promise<IResultado> {
+    try {
+        const response = await repositorio.findAll();
+
+        if (!response.sucesso || !Array.isArray(response.docs)) return response;
+
+        const docsProcessados = response.docs.map((element: any) => {
+            try {
+                return processaElemento(element);
+            } catch (error) {
+                console.error('Erro ao processar a resposta:', error);
+
+                return {
+                    sucesso: false,
+                    mensagem: 'Erro ao buscar todas as pessoas',
+                    erro: error instanceof Error ? error.message : 'Erro desconhecido'
+                };        
+            }
+        });
+
+        return {
+            sucesso: true,
+            docs: ordena(docsProcessados)
+        };
+    } catch (error) {
+        console.error('Erro ao buscar todas as pessaos:', error);
+
+        return {
+            sucesso: false,
+            mensagem: 'Erro ao buscar todas as pessoas',
+            erro: error instanceof Error ? error.message : 'Erro desconhecido'
+        };
+    }
+}
+
+export async function buscaAniversariantes(oMes: string): Promise<IResultado> {
     const mes = oMes;
 
     try {
-        const resposta: any = await repositorio.findByAniversario(mes);
-        if (resposta.sucesso) {
-            resposta.docs.forEach((element: any) => {
-                element.nome = decripta(element.nome);
-                element.cpf = decriptaCpf(element.cpf);
-            });
+        const response = await repositorio.findByAniversario(mes);
 
-            return {
-                sucesso: true,
-                docs: resposta.docs
-            };
-        } else {
-            return resposta;
-        }        
+        if (!response.sucesso || !Array.isArray(response.docs)) return response;
+
+        const docsProcessados = response.docs.map((element: any) => {
+            try {
+                return processaElemento(element);
+            } catch (error) {
+                console.error('Erro ao processar a resposta:', error);
+
+                return {
+                    sucesso: false,
+                    mensagem: 'Erro ao buscar todas as pessoas',
+                    erro: error instanceof Error ? error.message : 'Erro desconhecido'
+                };        
+            }
+        });
+        
+        return {
+            sucesso: true,
+            docs: docsProcessados
+        };
     } catch (error) {
-        throw error;
+        console.error(`Erro em buscaAniversariantes(oMes: ${mes}):`, error);
+        
+        return {
+            sucesso: false,
+            mensagem: `Erro ao buscar os aniversariantes do mês ${mes}`,
+            erro: error instanceof Error ? error.message : 'Erro desconhecido'
+        };
     }
 }
 
-export async function buscaSituacao(aSituacao: string): Promise<any> {
+export async function buscaSituacao(aSituacao: string): Promise<IResultado> {
     const situacao = aSituacao;
     try {
-        const resposta: any = await repositorio.findBySituacao(situacao);
-        if (resposta.sucesso) {
+        const response: any = await repositorio.findBySituacao(situacao);
+        if (!response.sucesso || !Array.isArray(response.docs)) return response;
 
-            resposta.docs.forEach((element: any) => {
-                element.nome = decripta(element.nome);
-                element.cpf = decriptaCpf(element.cpf);
-            });
+        const docsProcessados = response.docs.map((element: any) => {
+            try {
+                return processaElemento(element);
+            } catch (error) {
+                console.error('Erro ao processar a resposta:', error);
 
-            resposta.docs.sort((a: { nome: string; }, b: { nome: string; }) => {
-                var fa = a.nome.toLowerCase();
-                var fb = b.nome.toLowerCase();
-
-                if (fa < fb) {
-                    return -1;
-                }
-                if (fa > fb) {
-                    return 1;
-                }
-                return 0;
-            });
-
-            return {
-                sucesso: true,
-                docs: resposta.docs
-            };
-        } else {
-            return resposta;
-        }        
+                return {
+                    sucesso: false,
+                    mensagem: 'Erro ao buscar pela sitiacao',
+                    erro: error instanceof Error ? error.message : 'Erro desconhecido',
+                    situacao
+                };        
+            }
+        });
+        
+        return {
+            sucesso: true,
+            docs: ordena(docsProcessados)
+        };
     } catch (error) {
-        throw error;
+        console.error(`Erro em buscaSituacao(aSituacao: ${aSituacao}):`, error);
+        
+        return {
+            sucesso: false,
+            mensagem: `Erro ao buscar as pessoas ${situacao}`,
+            erro: error instanceof Error ? error.message : 'Erro desconhecido'
+        };
     }
 }
 
-export async function buscaProfessores(): Promise<any> {
+export async function buscaProfessores(): Promise<IResultado> {
     try {
         //const resposta: any = await repositorio.findByIsProfessor(true);
-        const resposta: any = await repositorio.findByTipo('professor');
-        if (resposta.sucesso) {
+        const response: any = await repositorio.findByTipo('professor');
+        if (!response.sucesso || !Array.isArray(response.docs)) return response;
 
-            resposta.docs.forEach((element: any) => {
-                element.nome = decripta(element.nome);
-                element.cpf = decriptaCpf(element.cpf);
-            });
+        const docsProcessados = response.docs.map((element: any) => {
+            try {
+                return processaElemento(element);
+            } catch (error) {
+                console.error('Erro ao processar a resposta:', error);
 
-            resposta.docs.sort((a: { nome: string; }, b: { nome: string; }) => {
-                var fa = a.nome.toLowerCase();
-                var fb = b.nome.toLowerCase();
-
-                if (fa < fb) {
-                    return -1;
-                }
-                if (fa > fb) {
-                    return 1;
-                }
-                return 0;
-            });
-
-            return {
-                sucesso: true,
-                docs: resposta.docs
-            };
-        } else {
-            return resposta;
-        }        
+                return {
+                    sucesso: false,
+                    mensagem: 'Erro ao buscar os professores',
+                    erro: error instanceof Error ? error.message : 'Erro desconhecido'
+                };        
+            }
+        });
+        
+        return {
+            sucesso: true,
+            docs: ordena(docsProcessados)
+        };
     } catch (error) {
-        throw error;
+        console.error(`Erro em buscaProfessores():`, error);
+        
+        return {
+            sucesso: false,
+            mensagem: `Erro ao buscar os professores`,
+            erro: error instanceof Error ? error.message : 'Erro desconhecido'
+        };
     }
 }
 
@@ -238,65 +309,55 @@ function trataException(exception: any): string {
     return mensagem;
 }
 
-export async function inclui(osDados: any): Promise<any> {
+export async function inclui(osDados: any): Promise<IResultado> {
     const dados: IPessoa = setDoc(osDados);
     try {
-        return await repositorio.insert(dados);
-    } catch (error) {
-        throw new Error(trataException(error));
-        //throw error;
+        const response = await repositorio.insert(dados);
+        if (!response) {
+            return {
+                sucesso: false,
+                mensagem: 'Erro ao incluir os dados',
+                erro: undefined
+            };
+        }
+
+        return {
+            sucesso: true,
+            doc: response.doc
+        };
+    } catch (error: any) {
+//        throw new Error(trataException(error));
+        return {
+            sucesso: false,
+            mensagem: trataException(error)
+        }
     }
 }
 
-export async function atualiza(oId: string, osDados: any): Promise<any> {
+export async function atualiza(oId: string, osDados: any): Promise<IResultado> {
     const id = oId;
     const dados = setDoc(osDados);
 
     try {
-        return await repositorio.update(id, dados);
-    } catch (error) {
-        throw error;
-    }
+        const response = await repositorio.update(id, dados);
 
-}
-
-export async function busca(oId: string): Promise<any> {
-    const id = oId;
-    try {
-        const resposta: any = await repositorio.find(id);
-        //console.log(resposta)
-        if (resposta.sucesso) {
-            let pessoa = resposta.doc;
-            pessoa.nome = decripta(pessoa.nome);
-            pessoa.cpf = decriptaCpf(pessoa.cpf);
-
-            if (pessoa.id_graduacao) {
-                pessoa.id_graduacao = pessoa.id_graduacao.toString();
-            }
-
-            if (pessoa.id_dojo) {
-                pessoa.id_dojo = pessoa.id_dojo.toString();
-            }
-/*
-            pessoa.promocoes.forEach(async (p: any) => {
-                p.data_formatada = formatDateDDMMAAAA(p.data);
-                if (p._id) {
-                    p._id = p._id.toString();
-                }
-            });
-
-            pessoa.pagamentos.forEach((p: any) => {
-                p.data_formatada = formatDateDDMMAAAA(p.data);
-            });
-*/
+        if (!response.sucesso) {
             return {
-                sucesso: true,
-                doc: pessoa
+                sucesso: false,
+                mensagem: 'Erro ao atualizar os dados',
             };
-        } else {
-            return resposta;
-        }        
+        }
+
+        return {
+            sucesso: true,
+            doc: response.doc
+        };
+
     } catch (error) {
-        throw error;
+        return {
+            sucesso: false,
+            mensagem: trataException(error)
+        }
     }
 }
+

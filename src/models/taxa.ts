@@ -1,7 +1,6 @@
 // Taxa.ts
-import { boolean } from 'joi';
 import * as mongodb from 'mongodb';
-import { Decimal128, model, ObjectId, Schema } from "mongoose";
+import { Decimal128, model,Schema } from "mongoose";
 
 /**
  * Interface de dados da taxa.

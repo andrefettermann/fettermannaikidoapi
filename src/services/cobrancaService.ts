@@ -1,11 +1,15 @@
-// src/services/cobrancaService.ts
+/**
+ * src/services/cobrancaService.ts
+ */
+
 import { convertDdMmYyyyToDate, formatDateDDMMAAAA } from '../utils/date';
 import { ICobranca } from '../models/cobranca';
 import * as repositorio from '../respositories/cobrancaRepository';
 import { decripta } from '../utils/crypto';
+import { IResultado } from '../models/resultado';
 
-function setDocCobranca(osDados: any): any {
-    var doc =  {
+function setDocCobranca(osDados: any): ICobranca {
+    var doc: ICobranca = {
         'id_pessoa': osDados.id_pessoa?osDados.id_pessoa:null,
         'id_taxa': osDados.id_taxa?osDados.id_taxa:null,
         'id_evento': osDados.id_evento,
@@ -20,6 +24,7 @@ function setDocCobranca(osDados: any): any {
         'situacao': osDados.situacao,
         'periodo_referencia': osDados.periodo_referencia,
         'observacoes': osDados.observacoes,
+        'pagamentos': []
     };
 
     return doc;
@@ -41,101 +46,97 @@ function setDocPagamento(osDados: any): any {
     return doc;
 }
 
-export async function busca(oId: string): Promise<any> {
+export async function busca(oId: string): Promise<IResultado> {
     const id = oId;
     try {
-        const resposta: any = await repositorio.find(id);
-        resposta.doc.pessoa.nome = decripta(resposta.doc.pessoa.nome);
-        return resposta;
+        const response = await repositorio.find(id);
+        if (!response.sucesso || !response.doc) return response;
+
+        if (response.doc.pessoa.nome) 
+            response.doc.pessoa.nome = decripta(response.doc.pessoa.nome);
+
+        return { sucesso: true, doc: response.doc };
+    } catch (error: any) {
+        throw new Error(error.message);
+    }
+}
+
+export async function buscaTodos(): Promise<IResultado> {
+    try {
+        const response = await repositorio.findAll();
+        if (!response.sucesso || !Array.isArray(response.docs)) return response;
+
+        response.docs.forEach((doc: any) => {
+            if (doc.pessoa.nome) 
+                doc.pessoa.nome = decripta(doc.pessoa.nome);
+        });
+
+        return {
+            sucesso: true,
+            docs: response.docs
+        };
     } catch (error) {
         throw error;
     }
 }
-export async function buscaTodos(): Promise<any> {
+
+export async function buscaPorTaxa(oId: string): Promise<IResultado> {
+    const id = oId;
     try {
-        const resposta = await repositorio.findAll();
+        const response = await repositorio.findByIdTaxa(id);
+        if (!response.sucesso || !Array.isArray(response.docs)) return response;
 
-        if (resposta.sucesso) {
-            resposta.docs.forEach((doc: any) => {
-                if (doc.pessoa.nome) 
-                    doc.pessoa.nome = decripta(doc.pessoa.nome);
-            });
+        response.docs.forEach((doc: any) => {
+            if (doc.pessoa.nome) 
+                doc.pessoa.nome = decripta(doc.pessoa.nome);
+        });
 
-            return {
-                sucesso: true,
-                docs: resposta.docs
-            };
-        } else {
-            return resposta;
-        }        
-    } catch (error: any) {
-        throw new Error(error.message);
+        return {
+            sucesso: true,
+            docs: response.docs
+        };
+    } catch (error) {
+        throw error;
     }
 }
 
-export async function buscaPorPessoa(oId: string): Promise<any> {
+export async function buscaPorPagamento(oId: string): Promise<IResultado> {
     const id = oId;
     try {
-        const resposta = await repositorio.findByIdPessoa(id);
+        const response = await repositorio.findByIdPagamento(id);
+        if (!response.sucesso || !Array.isArray(response.docs)) return response;
 
-        if (resposta.sucesso) {
-            resposta.docs.forEach((doc: any) => {
-                if (doc.pessoa.nome) 
-                    doc.pessoa.nome = decripta(doc.pessoa.nome);
-            });
+        response.docs.forEach((doc: any) => {
+            if (doc.pessoa.nome) 
+                doc.pessoa.nome = decripta(doc.pessoa.nome);
+        });
 
-            return {
-                sucesso: true,
-                docs: resposta.docs
-            };
-        } else {
-            return resposta;
-        }        
-    } catch (error: any) {
-        throw new Error(error.message);
+        return {
+            sucesso: true,
+            docs: response.docs
+        };
+    } catch (error) {
+        throw error;
     }
 }
 
-export async function buscaPorTaxa(oId: string): Promise<any> {
+export async function buscaPorPessoa(oId: string): Promise<IResultado> {
     const id = oId;
     try {
-        const resposta = await repositorio.findByIdTaxa(id);
-        if (resposta.sucesso) {
-            resposta.docs.forEach((doc: any) => {
-                if (doc.pessoa.nome) 
-                    doc.pessoa.nome = decripta(doc.pessoa.nome);
-            });
+        const response = await repositorio.findByIdPessoa(id);
+        if (!response.sucesso || !Array.isArray(response.docs)) return response;
 
-            return {
-                sucesso: true,
-                docs: resposta.docs
-            };
-        } else {
-            return resposta;
-        }        
-    } catch (error: any) {
-        throw new Error(error.message);
-    }
-}
+        response.docs.forEach((doc: any) => {
+            if (doc.pessoa.nome) 
+                doc.pessoa.nome = decripta(doc.pessoa.nome);
+        });
 
-export async function buscaPorPagamento(oId: string): Promise<any> {
-    const id = oId;
-    try {
-        const resposta = await repositorio.findByIdPagamento(id);
-        if (resposta.sucesso) {
-            if (resposta.doc.pessoa.nome) 
-                resposta.doc.pessoa.nome = decripta(resposta.doc.pessoa.nome);
-
-            return {
-                sucesso: true,
-                doc: resposta.doc
-            };
-        } else {
-            return resposta;
-        }        
-    } catch (error: any) {
-        console.error(error)
-        throw new Error(error.message);
+        return {
+            sucesso: true,
+            docs: response.docs
+        };
+    } catch (error) {
+        throw error;
     }
 }
 
@@ -158,46 +159,101 @@ function trataException(exception: any): string {
     return mensagem;
 }
 
-export async function inclui(osDados: any): Promise<any> {
+export async function inclui(osDados: any): Promise<IResultado> {
     const dados: ICobranca = setDocCobranca(osDados);
     try {
-        return await repositorio.insert(dados);
+        const response = await repositorio.insert(dados);
+        if (!response.sucesso || !response.doc) {
+            return {
+                sucesso: false,
+                mensagem: 'Erro ao incluir os dados',
+                erro: undefined
+            };
+        }
+
+        return {
+            sucesso: true,
+            doc: response.doc
+        };
     } catch (error) {
-        throw {sucesso: false, mensagem: trataException(error)};
+        //throw new Error(trataException(error));
+        return {
+            sucesso: false,
+            mensagem: trataException(error)
+        }
     }
+
 }
 
-export async function atualiza(oId: string, osDados: any): Promise<any> {
+export async function atualiza(oId: string, osDados: any): Promise<IResultado> {
     const id = oId;
     const dados: ICobranca = setDocCobranca(osDados);
     try {
-        const resposta = await repositorio.update(id, dados);
-        return resposta
+        const response = await repositorio.update(id, dados);
+        if (!response.sucesso || !response.doc) {
+            return {
+                sucesso: false,
+                mensagem: 'Erro ao atualizar os dados',
+            };
+        }
+
+        return {
+            sucesso: true,
+            doc: response.doc
+        };
     } catch (error) {
-        throw new Error(trataException(error));
+        //throw new Error(trataException(error));
+        return {
+            sucesso: false,
+            mensagem: trataException(error)
+        }
     }
 }
 
-export async function incluiPagamento(oId: string, osDados: any): Promise<any> {
+export async function incluiPagamento(oId: string, osDados: any): Promise<IResultado> {
     const dados = setDocPagamento(osDados);
     const id = oId;
     try {
-        const resposta = await repositorio.insertPagamento(id, dados);
-        return resposta;
+        const response = await repositorio.insertPagamento(id, dados);
+        if (!response.sucesso || !response.doc) {
+            return {
+                sucesso: false,
+                mensagem: 'Erro ao incluir o pagamento',
+            };
+        }
+
+        return {
+            sucesso: true,
+            doc: response.doc
+        };
     } catch (error) {
-        console.log(error)
-        throw {sucesso: false, mensagem: trataException(error)};
+        return {
+            sucesso: false,
+            mensagem: trataException(error)
+        }
     }
 }
 
 export async function atualizaPagamento(osDados: any): Promise<any> {
     const dados = setDocPagamento(osDados);
     try {
-        const resposta = await repositorio.updatePagamento(
+        const response = await repositorio.updatePagamento(
             osDados.id_cobranca, osDados.id_pagamento, dados);
-        return resposta;
+        if (!response.sucesso || !response.doc) {
+            return {
+                sucesso: false,
+                mensagem: 'Erro ao atualizar o pagamento',
+            };
+        }
+
+        return {
+            sucesso: true,
+            doc: response.doc
+        };
     } catch (error) {
-        console.log(error)
-        throw {sucesso: false, mensagem: trataException(error)};
+        return {
+            sucesso: false,
+            mensagem: trataException(error)
+        }
     }
 }

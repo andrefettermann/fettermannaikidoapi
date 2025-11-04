@@ -1,6 +1,8 @@
 // taxaRepository.ts
+import { ObjectId } from "mongodb";
 import { Taxa, ITaxa } from "../models/taxa";
 import { connectDB } from "../db";
+import { IResultado } from "../models/resultado";
 
 /**
  * Repositorio para taxa.
@@ -8,98 +10,113 @@ import { connectDB } from "../db";
  * @author Andre Fettermann
  */
 
-const MENSAGEM_ERRO_LER = "Erro ao ler os dados";
-const MENSAGEM_ERRO_INCLUIR = "Erro ao incluir os dados";
-const MENSAGEM_ERRO_ATUALIZAR = "Erro ao atualizar os dados";
+export async function find(id: string): Promise<IResultado> {
+    const pipeline = [
+        { $match: { _id: new ObjectId(id) } },
+        { $limit: 1 }
+    ];
 
-export async function find(id: string): Promise<any> {
     try {
         await connectDB();
-        const response: ITaxa[] | null = await Taxa.findById(id);
-        if (response) {
-            return {
-                sucesso: true,
-                doc: response
-            }
-        } else {
+
+        const response = await Taxa.aggregate(pipeline)
+        .allowDiskUse(true)
+        .option({ maxTimeMS: 15000 })
+        .exec();
+
+        //const response = await Taxa.findById(id).allowDiskUse(true).exec();
+        if (response.length === 0) {
             return {
                 sucesso: false,
-                erro: MENSAGEM_ERRO_LER
+                mensagem: "Registro não encontrado"
             }
         }
+
+        return {
+            sucesso: true,
+            doc: response[0]
+        }
     }  catch(error) {
-        throw error;
+        if (process.env.NODE_ENV === 'development') {
+            console.error(`Erro em find(id: ${id}):`, error);
+        }
+        
+        return {
+            sucesso: false,
+            mensagem: `Erro ao buscar a taxa de id ${id}`,
+            erro: error instanceof Error ? error.message : 'Erro desconhecido'
+        };
     }
 }
 
-export async function findAll(): Promise<any>{
+export async function findAll(): Promise<IResultado>{
     try{
         await connectDB();
 
-        const result: ITaxa[] = await Taxa.find({}).sort({ tipo: 1 });
-                //Graduacao.find({}).sort({ sequencia: 1 }).lean();
-        if (result) {
-            return {
-                sucesso: true,
-                docs: result
-            }
-        } else {
-            return {
-                sucesso: false,
-                erro: MENSAGEM_ERRO_LER
-            }
-        }
+        const response = await Taxa.find({}).sort({ tipo: 1 });
+
+        return {
+            sucesso: true,
+            docs: response
+        };
     } catch(error){
-        throw error;
+        if (process.env.NODE_ENV === 'development') {
+            console.error(`Erro em findAll:`, error);
+        }
+        
+        return {
+            sucesso: false,
+            mensagem: `Erro ao buscar todos os registros`,
+            erro: error instanceof Error ? error.message : 'Erro desconhecido'
+        };
     }
 }
 
-export async function insert(data: ITaxa): Promise<any>{
+export async function insert(data: ITaxa): Promise<IResultado>{
     try {
         await connectDB();
 
-        const result: any = await Taxa.create(data);
-        if (result) {
-            return {
-                sucesso: true,
-                id: result
-            }
-        } else {
+        const response = await Taxa.create(data);
+        if (!response) {
             return {
                 sucesso: false,
-                erro: MENSAGEM_ERRO_INCLUIR
+                mensagem: "Erro ao incluir os dados",
+                erro: "Registro não encontrado"
             }
+        }
+
+        return {
+            sucesso: true,
+            doc: response // ou: { sucesso: true, id: (response as any)._id }
         }
     } catch (error) {
         throw error;
     }
 };
 
-export async function update(id: string, data: any){
+export async function update(id: string, data: any): Promise<IResultado>{
     try{
         await connectDB();
 
-        const result = 
-            await Taxa.findByIdAndUpdate(
-                {"_id":id}, 
-                data, 
+        const response = await Taxa.findByIdAndUpdate({"_id":id}, data, 
                 {
                     new: true,
                     runValidators: true
                 }
             )
-        if(result){
+            if (!response) {
+                return {
+                    sucesso: false,
+                    mensagem: "Erro ao atualizar os dados",
+                    erro: "Registro não encontrado"
+                }
+            }
+        
             return {
                 sucesso: true,
-                total_modificado: result
+                doc: response
             }
-        } else {
-            return {
-                sucesso: false,
-                erro: MENSAGEM_ERRO_ATUALIZAR
-            }
+        } catch(error){
+            throw error;
         }
-    } catch(error){
-        throw error;
     }
-}

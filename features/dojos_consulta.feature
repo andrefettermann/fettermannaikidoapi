@@ -16,7 +16,7 @@
 #npx cucumber.js features/dojos_consulta.feature --tags "@consulta_05" --format json:cucumber-report.json
 
 # language: pt
-Funcionalidade: Lista de dojos
+Funcionalidade: Consulta dojos cadastrados
 
     @consulta_01
     Cenario: Solicita a lista de todos os dojos cadastrados
@@ -26,12 +26,13 @@ Funcionalidade: Lista de dojos
     
     @consulta_02
     Cenario: Solicita os dados de um dojo cadastrado específico
-        Dado que existe o dojo cadastrado com o id '688bf0813442bec3d424acee'
+        Dado que existe o dojo cadastrado com o id "688bf0813442bec3d424acee"
         Quando e solicitado os dados destes dojo
         Entao deveriam ser retornados os dados deste dojo
 
+    @consulta_03
     Cenario: Solicita a lista de dojos inativos cadastrados
-        Dado que existem 10 dojos inativos cadastrados
+        Dado que existem 2 dojos inativos cadastrados
         Quando e solicitada a lista de dojos inativos cadastrados
         Entao deveriam ser listados todos os dojos inativos cadastrados
 

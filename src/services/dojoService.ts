@@ -1,7 +1,9 @@
 // services/dojoService.ts
-import { IDojo } from 'src/models/dojo';
+import { IDojo } from '../models/dojo';
 import * as repositorio from '../respositories/dojoRepository';
 import { decripta } from '../utils/crypto';
+import { IResultado } from '../models/resultado'
+
 
 function setDoc(osDados: any): IDojo {
     var dojo: IDojo = {
@@ -22,112 +24,148 @@ function setDoc(osDados: any): IDojo {
     return dojo;
 }
 
-export async function busca(oId: string): Promise<any> {
+export async function busca(oId: string): Promise<IResultado> {
     const id = oId;
     try {
-        const response: any = await repositorio.find(id);
-        if (response.sucesso) {
+        const response = await repositorio.find(id);
+        if (!response.sucesso || !response.doc) return response;
 
-            if (response.doc.id_professor) {
-                response.doc.id_professor = response.doc.id_professor.toString();
+        const doc = response.doc;
+
+        if (doc.id_professor) {
+            doc.id_professor = doc.id_professor.toString();
+        }
+
+        if (Array.isArray(doc.professor) && doc.professor[0]?.nome) {
+            try {
+                doc.professor[0].nome = decripta(doc.professor[0].nome);
+            } catch (_) {}
+        }
+
+        if (Array.isArray(doc.alunos)) {
+            doc.alunos.forEach((a: any) => {
+                if (a?.nome) {
+                    try { a.nome = decripta(a.nome); } catch (_) {}
+                }
+            });
+        }
+
+        return { sucesso: true, doc };
+    } catch (error) {
+        throw error;
+    }
+}
+
+export async function buscaTodos(): Promise<IResultado> {
+    try {
+        const response: IResultado = await repositorio.findAll();
+        if (!response.sucesso || !Array.isArray(response.docs)) return response;
+
+        response.docs.forEach((element: any) => {
+            if (element.id_professor) {
+                element.id_professor = element.id_professor.toString();
             }
-            
-            if (response.doc.professor[0]) {
-                response.doc.professor[0].nome = 
-                    decripta(response.doc.professor[0].nome);
+            if (Array.isArray(element.professor)) {
+                element.professor.forEach((p: any) => {
+                    if (p?.nome) {
+                        try { p.nome = decripta(p.nome); } catch (_) {}
+                    }
+                });
             }
+        });
 
-            response.doc.alunos.forEach((a: any) => {
-                a.nome = decripta(a.nome);
-            })
-
-            return {
-                sucesso: true,
-                doc: response.doc
-            };
-        } else {
-            return response;
-        }        
+        return { sucesso: true, docs: response.docs };
     } catch (error) {
         throw error;
     }
 }
 
-export async function buscaTodos(): Promise<any> {
+export async function buscaAtivos(): Promise<IResultado> {
     try {
-        const resposta = await repositorio.findAll();
-        if (resposta.sucesso) {
-            resposta.docs.forEach((element: any) => {
-                if (element.id_professor) {
-                    element.id_professor = element.id_professor.toString();
-                }
+        const response: IResultado = await repositorio.findByIsAtivo(true);
+        if (!response.sucesso || !Array.isArray(response.docs)) return response;
 
+        response.docs.forEach((element: any) => {
+            if (element.id_professor) {
+                element.id_professor = element.id_professor.toString();
+            }
+            if (Array.isArray(element.professor)) {
                 element.professor.forEach((p: any) =>{
-                    if (p.nome) p.nome = decripta(p.nome);
+                    if (p?.nome) {
+                        try { p.nome = decripta(p.nome); } catch (_) {}
+                    }
                 })
-            });
+            }
+        });
 
-            return {
-                sucesso: true,
-                docs: resposta.docs
-            };
-        } else {
-            return resposta;
-        }        
+        return { sucesso: true, docs: response.docs };
     } catch (error) {
         throw error;
     }
 }
 
-export async function buscaAtivos(): Promise<any> {
+export async function buscaInativos(): Promise<IResultado> {
     try {
-        const resposta = await repositorio.findByIsAtivo(true);
-        if (resposta.sucesso) {
-            resposta.docs.forEach((element: any) => {
+        const response = await repositorio.findByIsAtivo(false);
+        
+        if (!response.sucesso) {
+            return {
+                sucesso: false,
+                mensagem: response.mensagem || 'Erro ao buscar registros inativos',
+                erro: response.erro
+            };
+        }
+
+        // Validação adicional
+        if (!Array.isArray(response.docs)) {
+            return {
+                sucesso: false,
+                mensagem: 'Formato de resposta inválido'
+            };
+        }
+
+        // Processamento com tratamento de erros
+        const docsProcessados = response.docs.map((element: any) => {
+            try {
                 if (element.id_professor) {
                     element.id_professor = element.id_professor.toString();
                 }
-
-                element.professor.forEach((p: any) =>{
-                    if (p.nome) p.nome = decripta(p.nome);
-                })
-            });
-
-            return {
-                sucesso: true,
-                docs: resposta.docs
-            };
-        } else {
-            return resposta;
-        }        
-    } catch (error) {
-        throw error;
-    }
-}
-
-export async function buscaInativos(): Promise<any> {
-    try {
-        const resposta = await repositorio.findByIsAtivo(false);
-        if (resposta.sucesso) {
-            resposta.docs.forEach((element: any) => {
-                if (element.id_professor) {
-                    element.id_professor = element.id_professor.toString();
+                
+                if (Array.isArray(element.professor)) {
+                    element.professor = element.professor.map((p: any) => {
+                        if (p.nome) {
+                            try {
+                                p.nome = decripta(p.nome);
+                            } catch (erroDecripta) {
+                                console.error('Erro ao decriptar nome:', erroDecripta);
+                                // Mantém o valor original ou define um padrão
+                                //p.nome = '[Erro na descriptografia]';
+                            }
+                        }
+                        return p;
+                    });
                 }
+                
+                return element;
+            } catch (erroProcessamento) {
+                console.error('Erro ao processar documento:', erroProcessamento);
+                return element; // Retorna documento original em caso de erro
+            }
+        });
 
-                element.professor.forEach((p: any) =>{
-                    if (p.nome) p.nome = decripta(p.nome);
-                })
-            });
-
-            return {
-                sucesso: true,
-                docs: resposta.docs
-            };
-        } else {
-            return resposta;
-        }        
+        return {
+            sucesso: true,
+            docs: docsProcessados
+        };
+        
     } catch (error) {
-        throw error;
+        console.error('Erro em buscaInativos:', error);
+        
+        return {
+            sucesso: false,
+            mensagem: 'Erro ao buscar registros inativos',
+            erro: error instanceof Error ? error.message : 'Erro desconhecido'
+        };
     }
 }
 
@@ -148,26 +186,54 @@ function trataException(exception: any): string {
     return '';
 }
 
-export async function inclui(osDados: any): Promise<any> {
+export async function inclui(osDados: any): Promise<IResultado> {
     const dados: IDojo = setDoc(osDados);
     try {
-        return await repositorio.insert(dados);
+        const response = await repositorio.insert(dados);
+        if (!response) {
+            return {
+                sucesso: false,
+                mensagem: 'Erro ao incluir os dados',
+                erro: undefined
+            };
+        }
+
+        return {
+            sucesso: true,
+            doc: response.doc
+        };
     } catch (error: any) {
-        throw new Error(trataException(error));
-        //throw error;
+//        throw new Error(trataException(error));
+        return {
+            sucesso: false,
+            mensagem: trataException(error)
+        }
     }
 }
 
-export async function atualiza(oId: string, osDados: any): Promise<any> {
+export async function atualiza(oId: string, osDados: any): Promise<IResultado> {
     const id = oId;
     const dados: IDojo = setDoc(osDados);
 
     try {
-        const resposta: any = await repositorio.update(id, dados);
-        return resposta;
-    } catch (error) {        
-        throw new Error(trataException(error));
-    }
+        const response = await repositorio.update(id, dados);
+        if (!response.sucesso) {
+            return {
+                sucesso: false,
+                mensagem: 'Erro ao atualizar os dados',
+            };
+        }
 
+        return {
+            sucesso: true,
+            doc: response.doc
+        };
+    } catch (error) {        
+//        throw new Error(trataException(error));
+        return {
+            sucesso: false,
+            mensagem: trataException(error)
+        }
+    }
 }
 

@@ -1,112 +1,151 @@
 // src/controllers/cobrancaController.ts
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction, response } from 'express';
 import * as servico from "../services/cobrancaService";
 
 const MENSAGEM_ERRO_LER = "Erro ao ler os dados";
 
 export async function buscaTodos(req: Request, res: Response, next: NextFunction) {
     try {
-        const resposta: any = await servico.buscaTodos();
-        if (resposta) {
-            if (resposta.sucesso) {
-                return res.status(200).send(resposta.docs)
-            } else {
-                return res.status(204).json( {result: resposta} )
-            }
-        } else {
-            res.status(500).json({ mensagem: MENSAGEM_ERRO_LER });
+        const response = await servico.buscaTodos();
+        if (!response.sucesso || !Array.isArray(response.docs)) {
+            return res.status(204).json( {
+                sucesso: false,
+                mensagem: response.mensagem,
+                erro: response.erro
+            } );
         }
+        
+        return res.status(200).send({
+            sucesso: true,
+            docs: response.docs
+        });
     } catch (error) {
-        res.status(500).json({ error });
+        return res.status(500).json({ 
+            sucesso: false,
+            mensagem: 'Erro ao buscar todas as cobrancas',
+            erro: error instanceof Error ? error.message : 'Erro desconhecido'
+         });
     }
 }
+
 
 export async function buscaPorPessoa(req: Request, res: Response, next: NextFunction) {
     const id = req.params.id;
     try {
-        const resposta: any = await servico.buscaPorPessoa(id);
-        if (resposta) {
-            if (resposta.sucesso) {
-                return res.status(200).send(resposta.docs)
-            } else {
-                return res.status(200).json( {result: resposta} )
-            }
-        } else {
-            res.status(204).json({ mensagem: MENSAGEM_ERRO_LER });
+        const response = await servico.buscaPorPessoa(id);
+        if (!response.sucesso || !Array.isArray(response.docs)) {
+            return res.status(204).json( {
+                sucesso: false,
+                mensagem: response.mensagem,
+                erro: response.erro
+            } );
         }
+        
+        return res.status(200).send({
+            sucesso: true,
+            docs: response.docs
+        });
     } catch (error) {
         res.status(500).json({ error });
     }
 }
 
+
 export async function buscaPorTaxa(req: Request, res: Response, next: NextFunction) {
     const id = req.params.id;
     try {
-        const resposta: any = await servico.buscaPorTaxa(id);
-        if (resposta) {
-            if (resposta.sucesso) {
-                return res.status(200).send(resposta.docs)
-            } else {
-                return res.status(200).json( {result: resposta} )
-            }
-        } else {
-            res.status(204).json({ mensagem: MENSAGEM_ERRO_LER });
+        const response = await servico.buscaPorTaxa(id);
+        if (!response.sucesso || !Array.isArray(response.docs)) {
+            return res.status(204).json( {
+                sucesso: false,
+                mensagem: response.mensagem,
+                erro: response.erro
+            } );
         }
+        
+        return res.status(200).send({
+            sucesso: true,
+            docs: response.docs
+        });
     } catch (error) {
-        res.status(500).json({ error });
+        return res.status(500).json({ 
+            sucesso: false,
+            mensagem: 'Erro ao buscar as cobrancas por taxa',
+            erro: error instanceof Error ? error.message : 'Erro desconhecido'
+         });
     }
 }
 
 export async function buscaPorPagamento(req: Request, res: Response, next: NextFunction) {
     const id = req.params.id;
     try {
-        const resposta: any = await servico.buscaPorPagamento(id);
-        
-        if (resposta) {
-            if (resposta.sucesso) {
-                return res.status(200).send(resposta.doc)
-            } else {
-                return res.status(200).json( {result: resposta} )
-            }
-        } else {
-            res.status(204).json({ mensagem: MENSAGEM_ERRO_LER });
+        const response = await servico.buscaPorPagamento(id);
+        if (!response.sucesso || !response.docs) {
+            return res.status(204).json( {
+                sucesso: false,
+                mensagem: response.mensagem,
+                erro: response.erro
+            } );
         }
+        
+        return res.status(200).send({
+            sucesso: true,
+            doc: response.docs
+        });
     } catch (error) {
-        res.status(500).json({ error });
+        return res.status(500).json({ 
+            sucesso: false,
+            mensagem: 'Erro ao buscar as cobrancas por pagamento',
+            erro: error instanceof Error ? error.message : 'Erro desconhecido'
+         });
     }
 }
 
 export async function busca(req: Request, res: Response, next: NextFunction) {
     try {
-        const resposta: any = await servico.busca(req.params.id);
-        if (resposta) {
-            if (resposta.sucesso) {
-                return res.status(200).send(resposta.doc)
-            } else {
-                return res.status(204).json( {result: resposta} )
-            }
-        } else {
-            res.status(500).json({ mensagem: MENSAGEM_ERRO_LER });
+        const response = await servico.busca(req.params.id);
+        if (!response.sucesso || !response.doc) {
+            return res.status(204).json( {
+                sucesso: false,
+                mensagem: response.mensagem,
+                erro: response.erro
+            } );
         }
+        
+        return res.status(200).send({
+            sucesso: true,
+            doc: response.doc
+        });
     } catch (error) {
-        res.status(500).json({ error });
+        return res.status(500).json({ 
+            sucesso: false,
+            mensagem: 'Erro ao buscar a cobranca',
+            erro: error instanceof Error ? error.message : 'Erro desconhecido'
+         });
     }
 }
 
 export async function inclui(req: Request, res: Response, next: NextFunction) {
     try {
-        const resposta: any = await servico.inclui(req.body);
-        if (resposta) {
-            if (resposta.sucesso) {
-                res.status(201).json(resposta);
-            } else {
-                res.status(500).json({ mensagem: resposta.erro });
-            }
-        } else {
-            res.status(500).json({ result: resposta });
+        const response = await servico.inclui(req.body);
+        if (!response.sucesso || !response.doc) {
+            return res.status(204).json( {
+                sucesso: false,
+                mensagem: response.mensagem,
+                erro: response.erro
+            } );
         }
+        
+        return res.status(200).send({
+            sucesso: true,
+            doc: response.doc
+        });
     } catch (error) {
-        res.status(500).json({ mensagem: error });
+        return res.status(500).json({ 
+            sucesso: false,
+            mensagem: 'Erro ao incluir a cobranca',
+            erro: error instanceof Error ? error.message : 'Erro desconhecido'
+         });
     }
 }
 
@@ -114,53 +153,68 @@ export async function incluiPagamento(req: Request, res: Response, next: NextFun
     const id = req.body.id_cobranca;
     const dados = req.body;
     try {
-        const resposta: any = await servico.incluiPagamento(id, dados);
-        if (resposta) {
-            if (resposta.sucesso) {
-                res.status(201).json(resposta);
-            } else {
-                res.status(500).json({ mensagem: resposta.erro });
-            }
-        } else {
-            res.status(500).json({ result: resposta });
+        const response = await servico.incluiPagamento(id, dados);
+        if (!response.sucesso || !response.doc) {
+            return res.status(204).json( {
+                sucesso: false,
+                mensagem: response.mensagem,
+                erro: response.erro
+            } );
         }
+        
+        return res.status(200).send({
+            sucesso: true,
+            doc: response.doc
+        });
     } catch (error) {
-        res.status(500).json({ mensagem: error });
+        return res.status(500).json({ 
+            sucesso: false,
+            mensagem: 'Erro ao incluir o pagamento',
+            erro: error instanceof Error ? error.message : 'Erro desconhecido'
+         });
     }
 }
 
 export async function atualiza(req: Request, res: Response, next: NextFunction) {
     try {
-        const resposta: any = await servico.atualiza(req.params.id, req.body);
-        if (resposta) {
-            if (resposta.sucesso) {
-                res.status(201).json(resposta);
-            
-            } else {
-                res.status(500).json({ mensagem: resposta.erro });
-            }
-        } else {
-            res.status(500).json({ response: resposta });
+        const response = await servico.atualiza(req.params.id, req.body);
+        if (!response.sucesso || !response.doc) {
+            return res.status(204).json( {
+                sucesso: false,
+                mensagem: response.mensagem,
+                erro: response.erro
+            } );
         }
+        
+        return res.status(200).send({
+            sucesso: true,
+            doc: response.doc
+        });
     } catch (error) {
-        res.status(500).json({ mensagem: error });
+        return res.status(500).json({ 
+            sucesso: false,
+            mensagem: 'Erro ao atualizar a cobranca',
+            erro: error instanceof Error ? error.message : 'Erro desconhecido'
+         });
     }
 }
 
 export async function atualizaPagamento(req: Request, res: Response, next: NextFunction) {
     const dados = req.body;
     try {
-        const resposta: any = await servico.atualizaPagamento(dados);
-        if (resposta) {
-            if (resposta.sucesso) {
-                res.status(201).json(resposta);
-            } else {
-                res.status(500).json({ mensagem: resposta.erro });
-            }
-        } else {
-            res.status(500).json({ result: resposta });
+        const response = await servico.atualizaPagamento(dados);
+        if (!response.sucesso || !response.doc) {
+            return res.status(204).json( {
+                sucesso: false,
+                mensagem: response.mensagem,
+                erro: response.erro
+            } );
         }
     } catch (error) {
-        res.status(500).json({ mensagem: error });
+        return res.status(500).json({ 
+            sucesso: false,
+            mensagem: 'Erro ao atualizar o pagamento',
+            erro: error instanceof Error ? error.message : 'Erro desconhecido'
+         });
     }
 }

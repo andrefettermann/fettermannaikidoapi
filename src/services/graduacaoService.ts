@@ -2,6 +2,7 @@
 import { IGraduacao } from 'src/models/graduacao';
 import * as repositorio from '../respositories/graduacaoRepository';
 import { decripta } from '../utils/crypto';
+import { IResultado } from '../models/resultado'
 
 interface ITecnica {
     nome: string
@@ -32,40 +33,40 @@ function setDoc(osDados: any): IGraduacao {
     return doc;
 }
 
-export async function busca(oId: string) {
+export async function busca(oId: string): Promise<IResultado> {
     const id = oId;
     try {
-        const result: any = await repositorio.find(id);
-        if (result.sucesso) {
-            result.doc.pessoas.forEach((a: any) => {
-                a.nome = decripta(a.nome);
-            });
+        const response = await repositorio.find(id);
+        if (!response.sucesso || !response.doc) return response;
 
-            return {
-                sucesso: true,
-                doc: result.doc
-            };
-        } else {
-            throw result.error;
-        }        
+        const doc = response.doc;
+
+        if (Array.isArray(doc.pessoas)) {
+            doc.pessoas.forEach((a: any) => {
+                if (a?.nome) {
+                    try { a.nome = decripta(a.nome); } catch (_) {}
+                }
+            });
+        }
+
+        return { sucesso: true, doc }
     } catch (error) {
         throw error;
     }
 }
 
-export async function buscaTodos() {
+export async function buscaTodos(): Promise<IResultado> {
     try {
-        const result: any = await repositorio.findAll();
-        if (result.sucesso) {
+        const response = await repositorio.findAll();
+        if (!response.sucesso || !Array.isArray(response.docs)) return response;
 
-            result.docs.forEach((g: any) => {
+
+        if (Array.isArray(response.docs)) {
+            response.docs.forEach((g: any) => {
                 g._id = g._id.toString();
             })
 
-            result.docs.sort((a: { ordem: number; }, b: { ordem: number; }) => {
-                //var fa = a.nome.toLowerCase();
-                //var fb = b.nome.toLowerCase();
-
+            response.docs.sort((a: { ordem: number; }, b: { ordem: number; }) => {
                 if (a.ordem < b.ordem) {
                     return -1;
                 }
@@ -74,13 +75,12 @@ export async function buscaTodos() {
                 }
                 return 0;
             });
-            return {
-                sucesso: true,
-                docs: result.docs
-            };
-        } else {
-            throw result.error;
-        }        
+        }
+
+        return {
+            sucesso: true,
+            docs: response.docs
+        };
     } catch (error) {
         throw error;
     }
@@ -105,22 +105,55 @@ function trataException(exception: any): string {
     return mensagem;
 }
 
-export async function inclui(osDados: any) {
+export async function inclui(osDados: any): Promise<IResultado> {
     const dados: IGraduacao = setDoc(osDados);
     try {
-        return await repositorio.insert( dados);
+        const response = await repositorio.insert( dados);
+
+        if (!response) {
+            return {
+                sucesso: false,
+                mensagem: 'Erro ao incluir os dados',
+                erro: undefined
+            };
+        }
+
+        return {
+            sucesso: true,
+            doc: response.doc
+        };
     } catch (error) {
-        throw new Error(trataException(error));
+        //throw new Error(trataException(error));
+        return {
+            sucesso: false,
+            mensagem: trataException(error)
+        }
     }
 }
 
-export async function atualiza(oId: string, osDados: any) {
+export async function atualiza(oId: string, osDados: any): Promise<IResultado> {
     const id = oId;
     const dados: IGraduacao = setDoc(osDados) ;
 
     try {
-        return await repositorio.update(id, dados);
+        const response = await repositorio.update(id, dados);
+        if (!response.sucesso) {
+            return {
+                sucesso: false,
+                mensagem: 'Erro ao atualizar os dados',
+            };
+        }
+
+        return {
+            sucesso: true,
+            doc: response.doc
+        };
+
     } catch (error) {
-        throw new Error(trataException(error));
+        //throw new Error(trataException(error));
+        return {
+            sucesso: false,
+            mensagem: trataException(error)
+        }
     }
 }

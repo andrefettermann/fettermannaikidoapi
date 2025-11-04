@@ -1,92 +1,131 @@
 
 import { Request, Response, NextFunction } from 'express';
 import * as servico from "../services/pessoaService";
+import { IResultado } from '../models/resultado';
 
 export async function buscaTodos(req: Request, res: Response, next: NextFunction) {
     try {
-        const resposta: any = await servico.buscaTodos();
-        if (resposta) {
-            if (resposta.sucesso) {
-                return res.status(200).send(resposta.docs)
-            } else {
-                return res.status(204).json( {result: resposta} )
-            }
-        } else {
-            res.status(500).json({ mensagem: "Erro ao ler os dados" });
+        const response = await servico.buscaTodos();
+        if (!response.sucesso || !Array.isArray(response.docs)) {
+            return res.status(204).json( {
+                sucesso: false,
+                mensagem: response.mensagem,
+                erro: response.erro
+            } );
         }
+            
+        return res.status(200).send({
+            sucesso: true,
+            docs: response.docs
+        });
     } catch (error) {
-        res.status(500).json({ error });
+        return res.status(500).json({ 
+            sucesso: false,
+            mensagem: "Erro ao buscar o dojo",
+            erro: error instanceof Error ? error.message : 'Erro desconhecido'
+         });
     }
 }
 
 export async function busca(req: Request, res: Response, next: NextFunction) {
+    const id = req.params.id;
     try {
-        const resposta: any = await servico.busca(req.params.id);
+        const response = await servico.busca(id);
 
-        if (resposta) {
-            if (resposta.sucesso) {
-                return res.status(200).send(resposta.doc)
-            } else {
-                return res.status(204).json( {result: resposta} )
-            }
-        } else {
-            res.status(500).json({ mensagem: "Erro ao ler os dados" });
+        if (!response.sucesso || !response.doc) {
+            return res.status(204).json( {
+                sucesso: false,
+                mensagem: response.mensagem,
+                erro: response.erro
+            } );
         }
+
+        return res.status(200).send({
+            sucesso: true,
+            doc: response.doc
+        });
     } catch (error) {
-        console.log(error)
-        res.status(500).json({ error });
+        return res.status(500).json({ 
+            sucesso: false,
+            mensagem: `Erro ao buscar a pessoa com o id: ${id}`,
+            erro: error instanceof Error ? error.message : 'Erro desconhecido'
+         });
     }
 }
 
 export async function buscaAniversariantes(req: Request, res: Response, next: NextFunction) {
+    const mes = req.params.mes;
     try {
-        const resposta: any = 
-                    await servico.buscaAniversariantes(req.params.mes);
-        if (resposta) {
-            if (resposta.sucesso) {
-                return res.status(200).send(resposta.docs)
-            } else {
-                return res.status(204).json( {response: resposta} )
-            }
-        } else {
-            res.status(500).json({ mensagem: "Erro ao ler os dados" });
+        const response = await servico.buscaAniversariantes(mes);
+
+        if (!response.sucesso || !Array.isArray(response.docs)) {
+            return res.status(204).json( {
+                sucesso: false,
+                mensagem: response.mensagem,
+                erro: response.erro
+            } );
         }
+            
+        return res.status(200).send({
+            sucesso: true,
+            docs: response.docs
+        });
     } catch (error) {
-        res.status(500).json({ error });
+        return res.status(500).json({ 
+            sucesso: false,
+            mensagem: `Erro ao buscar aniversariantes do mes ${mes} `,
+            erro: error instanceof Error ? error.message : 'Erro desconhecido'
+         });
     }
 }
 
 export async function buscaSituacao(req: Request, res: Response, next: NextFunction) {
+    const situacao = req.params.situacao;
     try {
-        const resposta: any = await servico.buscaSituacao(req.params.situacao);
-        if (resposta) {
-            if (resposta.sucesso) {
-                return res.status(200).send(resposta.docs)
-            } else {
-                return res.status(204).json( {response: resposta} )
-            }
-        } else {
-            res.status(500).json({ mensagem: "Erro ao ler os dados" });
+        const response = await servico.buscaSituacao(situacao);
+
+        if (!response.sucesso || !Array.isArray(response.docs)) {
+            return res.status(204).json( {
+                sucesso: false,
+                mensagem: response.mensagem,
+                erro: response.erro
+            } );
         }
+            
+        return res.status(200).send({
+            sucesso: true,
+            docs: response.docs
+        });
     } catch (error) {
-        res.status(500).json({ error });
+        return res.status(500).json({ 
+            sucesso: false,
+            mensagem: `Erro ao buscar pessoas pela situacao ${situacao} `,
+            erro: error instanceof Error ? error.message : 'Erro desconhecido'
+         });
     }
 }
 
 export async function buscaProfessores(req: Request,res: Response, next: NextFunction) {
     try {
-        const resposta: any = await servico.buscaProfessores();
-        if (resposta) {
-            if (resposta.sucesso) {
-                return res.status(200).send(resposta.docs)
-            } else {
-                return res.status(204).json( {response: resposta} )
-            }
-        } else {
-            res.status(500).json({ mensagem: "Erro ao ler os dados" });
+        const response: any = await servico.buscaProfessores();
+        if (!response.sucesso || !Array.isArray(response.docs)) {
+            return res.status(204).json( {
+                sucesso: false,
+                mensagem: response.mensagem,
+                erro: response.erro
+            } );
         }
+            
+        return res.status(200).send({
+            sucesso: true,
+            docs: response.docs
+        });
     } catch (error) {
-        res.status(500).json({ error });
+        return res.status(500).json({ 
+            sucesso: false,
+            mensagem: "Erro ao buscar professores",
+            erro: error instanceof Error ? error.message : 'Erro desconhecido'
+         });
     }
 }
 
