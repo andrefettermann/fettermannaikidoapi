@@ -130,7 +130,7 @@ export async function findAll(): Promise<IResultado>{
     }
 }
 
-export async function findByIdPessoa(oId: string): Promise<any>{
+export async function findByIdPessoa(oId: string): Promise<IResultado>{
     const id = oId;
     
     const pipeline = [
@@ -171,7 +171,7 @@ export async function findByIdPessoa(oId: string): Promise<any>{
     }
 }
 
-export async function findByIdTaxa(oId: string): Promise<any>{
+export async function findByIdTaxa(oId: string): Promise<IResultado>{
     const id = oId;
     const pipeline = [
         {
@@ -209,7 +209,7 @@ export async function findByIdTaxa(oId: string): Promise<any>{
     }
 }
 
-export async function findByIdPagamento(oId: string): Promise<any>{
+export async function findByIdPagamento(oId: string): Promise<IResultado>{
     const id = oId;
     const pipeline = [
         {
@@ -248,7 +248,7 @@ export async function findByIdPagamento(oId: string): Promise<any>{
     }
 }
 
-export async function insert(data: ICobranca): Promise<any>{
+export async function insert(data: ICobranca): Promise<IResultado>{
     try {
         await connectDB();
 
@@ -277,7 +277,7 @@ export async function insert(data: ICobranca): Promise<any>{
     }
 };
 
-export async function insertPagamento(id: string, data: any): Promise<any>{
+export async function insertPagamento(id: string, data: any): Promise<IResultado>{
     try {
         await connectDB();
 
@@ -315,7 +315,7 @@ export async function insertPagamento(id: string, data: any): Promise<any>{
     }
 };
 
-export async function update(id: string, data: ICobranca){
+export async function update(id: string, data: ICobranca): Promise<IResultado>{
     try{
         await connectDB();
 
@@ -366,7 +366,7 @@ export async function update(id: string, data: ICobranca){
     }
 }
 
-export async function updatePagamento(oIdCobranca: string, oIdPagamento: string, data: any): Promise<any>{
+export async function updatePagamento(oIdCobranca: string, oIdPagamento: string, data: any): Promise<IResultado>{
     const idCobranca = oIdCobranca;
     const idPagamento = oIdPagamento;
 
@@ -398,7 +398,45 @@ export async function updatePagamento(oIdCobranca: string, oIdPagamento: string,
         
         return {
             sucesso: false,
-            mensagem: `Erro ao atualizar o pagamento da cobranca de id ${idCobranca} e id ${idPagamento}`,
+            mensagem: `Erro ao atualizar o pagamento de id ${idPagamento} da cobranca de id ${idCobranca}`,
+            erro: error instanceof Error ? error.message : 'Erro desconhecido'
+        };
+    }
+};
+
+export async function deletePagamento(oIdCobranca: string, oIdPagamento: string): Promise<IResultado>{
+    const idCobranca = oIdCobranca;
+    const idPagamento = oIdPagamento;
+
+    try {
+        await connectDB();
+
+        const response =  
+            await Cobranca.findOneAndUpdate(
+            { _id: idCobranca, "pagamentos._id": idPagamento },
+            { $pull: { pagamentos: { _id: idPagamento } } },
+            { new: true, runValidators: true }
+            );
+        if (!response) {
+            return {
+                sucesso: false,
+                mensagem: "Erro ao excluir o pagamento",
+                erro: "Pagamento não encontrado."
+            }
+        }  
+
+        return {
+            sucesso: true,
+            doc: response
+        };
+    } catch (error: any) {
+        if (process.env.NODE_ENV === 'development') {
+            console.error(`Erro em deletePagamento(idCobranca: ${idCobranca}, idPagamento: ${idPagamento}):`, error);
+        }
+        
+        return {
+            sucesso: false,
+            mensagem: `Erro ao excluir o pagamento de id ${idPagamento} da cobranca de id ${idCobranca}`,
             erro: error instanceof Error ? error.message : 'Erro desconhecido'
         };
     }

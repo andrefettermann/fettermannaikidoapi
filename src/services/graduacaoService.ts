@@ -1,6 +1,7 @@
 // src/services/taxaService.ts
 import { IGraduacao } from 'src/models/graduacao';
 import * as repositorio from '../respositories/graduacaoRepository';
+import * as pessoaRepositorio from '../respositories/pessoaRepository';
 import { decripta } from '../utils/crypto';
 import { IResultado } from '../models/resultado'
 
@@ -109,7 +110,6 @@ export async function inclui(osDados: any): Promise<IResultado> {
     const dados: IGraduacao = setDoc(osDados);
     try {
         const response = await repositorio.insert( dados);
-
         if (!response) {
             return {
                 sucesso: false,
@@ -137,6 +137,46 @@ export async function atualiza(oId: string, osDados: any): Promise<IResultado> {
 
     try {
         const response = await repositorio.update(id, dados);
+        if (!response.sucesso) {
+            return {
+                sucesso: false,
+                mensagem: 'Erro ao atualizar os dados',
+            };
+        }
+
+        return {
+            sucesso: true,
+            doc: response.doc
+        };
+
+    } catch (error) {
+        //throw new Error(trataException(error));
+        return {
+            sucesso: false,
+            mensagem: trataException(error)
+        }
+    }
+}
+
+export async function exclui(oId: string): Promise<IResultado> {
+    const id = oId;
+    if (!id || id == '') {
+        return {
+            sucesso: false,
+            mensagem: 'Informe a graduação a ser excluída.'
+        }
+    }
+
+    try {
+        var response = await pessoaRepositorio.findByIdGraduacao(id);
+        if (response.sucesso && Array.isArray(response.docs) && response.docs.length > 0) {
+            return {
+                sucesso: false,
+                mensagem: 'Não é possível excluir graduação com pessoas associadas.'
+            }
+        }
+
+        response = await repositorio.remove(id);
         if (!response.sucesso) {
             return {
                 sucesso: false,

@@ -68,7 +68,7 @@ export async function find(id: string): Promise<IResultado> {
             { $limit: 1 }
         ];
 
-        const response: IDojo[] = await Dojo.aggregate(pipeline)
+        const response = await Dojo.aggregate(pipeline)
             .allowDiskUse(true)
             .option({ maxTimeMS: 15000 })
             .exec();
@@ -100,7 +100,7 @@ export async function findAll(): Promise<IResultado> {
     try{
         await connectDB();
 
-        const response: IDojo[] = await Dojo.aggregate([
+        const response = await Dojo.aggregate([
                 lookupProfessor,
                 //{$unwind: '$professor'},
                 projectDojos,
@@ -130,7 +130,7 @@ export async function findByIsAtivo(ativo: boolean): Promise<IResultado> {
     try {
         await connectDB();
         
-        const response: IDojo[] = await Dojo.aggregate([
+        const response = await Dojo.aggregate([
             {
                 $match: { 'is_ativo': ativo }
             },  
@@ -163,7 +163,7 @@ export async function insert(data: IDojo): Promise<IResultado>{
     try {
         await connectDB();
 
-        const response: IDojo = await Dojo.create(data);
+        const response = await Dojo.create(data);
         if (!response) {
             return {
                 sucesso: false,
@@ -185,8 +185,7 @@ export async function update(id: string, osDados: IDojo): Promise<IResultado> {
     try{
         await connectDB();
 
-        const response: IDojo | null = 
-            await Dojo.findByIdAndUpdate(
+        const response = await Dojo.findByIdAndUpdate(
                 {"_id": id}, 
                 osDados, 
                 {

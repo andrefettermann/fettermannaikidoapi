@@ -59,7 +59,7 @@ export async function busca(req: Request, res: Response, next: NextFunction) {
 
 export async function inclui(req: Request, res: Response, next: NextFunction) {
     try {
-        const response: any = await servico.inclui(req.body);
+        const response = await servico.inclui(req.body);
         if (!response.sucesso) {
             return res.status(204).json( {
                 sucesso: false,
@@ -104,4 +104,31 @@ export async function atualiza(req: Request, res: Response, next: NextFunction) 
             mensagem: "Erro ao atualizar a graduacao",
             erro: error instanceof Error ? error.message : 'Erro desconhecido'
          });
-    }}
+    }
+}
+
+export async function exclui(req: Request, res: Response, next: NextFunction) {
+    const { id } = req.params;
+    
+    try {
+        const response: any = await servico.exclui(id);
+
+        if (!response.sucesso) {
+            return res.status(201).json( {
+                sucesso: false,
+                mensagem: response.mensagem,
+                erro: response.erro
+            } );
+        }
+        return res.status(200).send({
+            sucesso: true,
+            docs: response.docs
+        });
+    } catch (error) {
+        return res.status(500).json({ 
+            sucesso: false,
+            mensagem: "Erro ao atualizar a graduacao",
+            erro: error instanceof Error ? error.message : 'Erro desconhecido'
+         });
+    }
+}

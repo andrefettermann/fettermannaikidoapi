@@ -176,8 +176,10 @@ export async function incluiPagamento(req: Request, res: Response, next: NextFun
 }
 
 export async function atualiza(req: Request, res: Response, next: NextFunction) {
+    const { id } = req.params;
+
     try {
-        const response = await servico.atualiza(req.params.id, req.body);
+        const response = await servico.atualiza(id, req.body);
         if (!response.sucesso || !response.doc) {
             return res.status(204).json( {
                 sucesso: false,
@@ -214,6 +216,35 @@ export async function atualizaPagamento(req: Request, res: Response, next: NextF
         return res.status(500).json({ 
             sucesso: false,
             mensagem: 'Erro ao atualizar o pagamento',
+            erro: error instanceof Error ? error.message : 'Erro desconhecido'
+         });
+    }
+}
+
+export async function excluiPagamento(req: Request, res: Response, next: NextFunction) {
+    const { idCobranca } = req.params;
+    const { idPagamento } = req.params;
+    
+    try {
+        const response = await servico.excluiPagamento(idCobranca, idPagamento);
+
+        if (!response.sucesso) {
+            return res.status(201).json( 
+                {             
+                    sucesso: false,
+                    mensagem: response.mensagem,
+                    erro: response.erro
+                } 
+            );
+        }
+        return res.status(200).send({
+            sucesso: true,
+            docs: response.docs
+        });
+    } catch (error) {
+        return res.status(500).json({ 
+            sucesso: false,
+            mensagem: "Erro ao atualizar a graduacao",
             erro: error instanceof Error ? error.message : 'Erro desconhecido'
          });
     }

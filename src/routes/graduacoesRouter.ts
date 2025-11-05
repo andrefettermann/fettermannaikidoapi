@@ -19,4 +19,6 @@ router.post('/inclui', authenticate, controller.inclui);
 
 router.patch('/altera/:id', authenticate, controller.atualiza);
 
+router.delete('/exclui/:id', authenticate, controller.exclui);
+
 export default router;

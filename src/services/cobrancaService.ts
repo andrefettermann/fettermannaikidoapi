@@ -234,11 +234,14 @@ export async function incluiPagamento(oId: string, osDados: any): Promise<IResul
     }
 }
 
-export async function atualizaPagamento(osDados: any): Promise<any> {
+export async function atualizaPagamento(osDados: any): Promise<IResultado> {
+    const idCobranca = osDados.id_cobranca;
+    const idPagamento = osDados.id_pagamento;
     const dados = setDocPagamento(osDados);
+
     try {
         const response = await repositorio.updatePagamento(
-            osDados.id_cobranca, osDados.id_pagamento, dados);
+            idCobranca, idPagamento, dados);
         if (!response.sucesso || !response.doc) {
             return {
                 sucesso: false,
@@ -257,3 +260,42 @@ export async function atualizaPagamento(osDados: any): Promise<any> {
         }
     }
 }
+
+export async function excluiPagamento(oIdCobranca: string, oIdPagamento: string): Promise<IResultado> {
+    const idCobranca = oIdCobranca;
+    const idPagamento = oIdPagamento;
+
+    if (!idCobranca || idCobranca === '') {
+        return {
+            sucesso: false,
+            mensagem: 'A cobranca é obrigatória.',
+        };
+    }
+
+    if (!idPagamento || idPagamento === '') {
+        return {
+            sucesso: false,
+            mensagem: 'O pagamento é obrigatório.',
+        };
+    }
+
+    try {
+        const response = await repositorio.deletePagamento(
+            idCobranca, idPagamento);
+
+        if (!response.sucesso || !response.doc) {
+            return response;
+        }
+
+        return {
+            sucesso: true,
+            doc: response.doc
+        };
+    } catch (error) {
+        return {
+            sucesso: false,
+            mensagem: trataException(error)
+        }
+    }
+}
+

@@ -149,13 +149,23 @@ export async function update(id: string, data: IGraduacao): Promise<IResultado>{
     }
 }
 
-export async function deleteGraduacao(id: String) {
+export async function remove(id: String): Promise<IResultado>{
     try {
         await connectDB();
-        const graduacao = await Graduacao.deleteOne({"_id":id});
-        return graduacao;
+        const response = await Graduacao.deleteOne({"_id":id});
+        if (!response) {
+            return {
+                sucesso: false,
+                mensagem: "Erro ao atualizar os dados",
+                erro: "Registro não encontrado"
+            }
+        }
+    
+        return {
+            sucesso: true,
+            doc: response
+        }
     } catch(error){
-        return error;
+        throw error;
     }
-
 }

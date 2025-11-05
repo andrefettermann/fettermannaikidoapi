@@ -30,4 +30,6 @@ router.patch('/altera/:id', authenticate, controller.atualiza);
 
 router.patch('/pagamento/altera', authenticate, controller.atualizaPagamento)
 
+router.delete('/pagamento/exclui/:idCobranca/:idPagamento', authenticate, controller.excluiPagamento);
+
 export default router;
