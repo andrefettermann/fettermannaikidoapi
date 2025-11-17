@@ -41,6 +41,22 @@ export async function find(id: string): Promise<IResultado> {
         { $match: { _id: new ObjectId(id) } },
         lookupDojo,
         lookupGraduacao,
+        {
+            $project: {
+                _id: 1,
+                nome: 1,
+                aniversario: 1,
+                matricula: 1,
+                situacao: 1,
+                cpf: 1,
+                tipo: 1,
+                data_inicio_aikido: 1, 
+                data_matricula: 1,
+                promocoes: 1,
+                'dojo': 1,
+                'graduacao': 1
+            } 
+        },
         { $limit: 1 }
     ];
 
@@ -290,6 +306,7 @@ export async function insert(doc: IPessoa): Promise<IResultado>{
             'doc': response // ou: { sucesso: true, id: (response as any)._id }
         }
     } catch (error) {
+        console.log(error)
         throw error;
     }
 };

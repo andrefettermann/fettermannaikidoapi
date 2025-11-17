@@ -1,6 +1,7 @@
 // services/pessoaService.ts
 import { convertDdMmYyyyToDate, formatDateDDMMAAAA } from '../utils/date';
 import * as repositorio from '../respositories/pessoaRepository';
+import * as graduacaoRepositorio from '../respositories/graduacaoRepository';
 import { decripta, encripta } from '../utils/crypto';
 import { IPessoa } from 'src/models/pessoa';
 import { Decimal128, ObjectId } from 'mongoose';
@@ -11,37 +12,17 @@ interface IPromocao {
     'id_graduacao': ObjectId
 }
 
-interface IPagamento {
-    'data': Date,
-    'valor_devido': any,
-    'valor_pago': Decimal128,
-    'descricao': String,
-    'observacoes': String
-}
-
-function setDoc(osDados: any): IPessoa {
-    
-    var totalPromocoes = osDados.total_promocoes;
-    var totalPagamentos = osDados.total_pagamentos;
-
-    //var doc = {};
-
-    var doc_promocoes: IPromocao[] = [];
-    if (totalPromocoes > 0) {
-        for (var i=0; i<osDados.total_promocoes; i++) {
-            var graduacao = osDados['id_graduacao_promocao_' + (i+1)];
-            if (graduacao) {
-                var doc_promocao = {
-                    'data': convertDdMmYyyyToDate(
-                        osDados['data_promocao_' + (i+1)]),
-                    'id_graduacao': osDados['id_graduacao_promocao_' + (i+1)]
-                }
-                doc_promocoes.push(doc_promocao);
-            }
-        }
-    }
+function converteParaDoc(osDados: any): IPessoa {
+    const docsPromocoes: IPromocao[] = [];
+    osDados.promocoes.forEach((p: any)=>{
+        docsPromocoes.push({
+            'data': convertDdMmYyyyToDate(p.data),
+            'id_graduacao': p.id_graduacao
+        });
+    })
 
     const doc: IPessoa = {
+        'id': osDados.id,
         'aniversario': osDados.aniversario,
         'matricula': osDados.matricula,
         'nome': osDados.nome==''?osDados.nome:encripta(osDados.nome),
@@ -52,10 +33,32 @@ function setDoc(osDados: any): IPessoa {
         'tipo': osDados.tipo,
         'id_dojo': osDados.id_dojo == ''?null:osDados.id_dojo,
         'id_graduacao': osDados.id_graduacao,
-        'promocoes': doc_promocoes,
+        'promocoes': docsPromocoes,
     }
 
     return doc;
+}
+
+function processaDoc(doc: any): any {
+    const pessoa = {
+        'id': doc._id,
+        'aniversario': doc.aniversario,
+        'cpf': doc.cpf?decriptaCpf(doc.cpf):'',
+        'data_inicio_aikido': doc.data_inicio_aikido,
+        'data_matricula': doc.data_matricula,
+        'id_dojo': doc.id_dojo,
+        'id_graduacao': doc.id_graduacao,
+        'matricula': doc.matricula,
+        'nome': decripta(doc.nome),
+        'situacao': doc.situacao,
+        'tipo': doc.tipo,
+        'promocoes': doc.promocoes,
+        'dojo': doc.dojo[0],
+        'graduacao': doc.graduacao[0]
+    }
+
+    return pessoa;
+
 }
 
 function decriptaCpf(cpf: any | null | undefined): string {
@@ -88,33 +91,9 @@ export async function busca(oId: string): Promise<IResultado> {
         const response = await repositorio.find(id);
         if (!response.sucesso || !response.doc) return response;
 
-        const  doc = response.doc;
-
-        doc.nome = decripta(doc.nome);
-
-        if (doc.cpf) doc.cpf = decriptaCpf(doc.cpf);
-        if (doc.id_graduacao) doc.id_graduacao = doc.id_graduacao.toString();
-        if (doc.id_dojo) doc.id_dojo = doc.id_dojo.toString();
-
-        doc.promocoes.forEach(async (p: any) => {
-            p.data_formatada = formatDateDDMMAAAA(p.data);
-            if (p._id) {
-                p._id = p._id.toString();
-            }
-        });
-
-
-        if (doc.dojo.length == 0) {
-            const dojo = {
-                _id: null,
-                nome: 'Nenhum dojo registrado',
-            }
-            doc.dojo.push(dojo)
-        }
-
         return {
             sucesso: true,
-            doc
+            doc: processaDoc(response.doc)
         };
     } catch (error) {
         console.error(`Erro em busca(oId: ${oId}):`, error);
@@ -128,25 +107,6 @@ export async function busca(oId: string): Promise<IResultado> {
     }
 }
 
-function processaElemento(elemento: any): any {
-    elemento._id = elemento._id.toString();
-
-    elemento.nome = decripta(elemento.nome);
-    if (elemento.cpf) elemento.cpf = decriptaCpf(elemento.cpf);
-
-    if (elemento.dojo.length == 0) {
-        const dojo = {
-            _id: null,
-            nome: 'Nenhum dojo registrado',
-        }
-        elemento.dojo.push(dojo)
-    }
-
-
-    return elemento;
-
-}
-
 export async function buscaTodos(): Promise<IResultado> {
     try {
         const response = await repositorio.findAll();
@@ -155,7 +115,7 @@ export async function buscaTodos(): Promise<IResultado> {
 
         const docsProcessados = response.docs.map((element: any) => {
             try {
-                return processaElemento(element);
+                return processaDoc(element);
             } catch (error) {
                 console.error('Erro ao processar a resposta:', error);
 
@@ -192,7 +152,7 @@ export async function buscaAniversariantes(oMes: string): Promise<IResultado> {
 
         const docsProcessados = response.docs.map((element: any) => {
             try {
-                return processaElemento(element);
+                return processaDoc(element);
             } catch (error) {
                 console.error('Erro ao processar a resposta:', error);
 
@@ -227,7 +187,7 @@ export async function buscaSituacao(aSituacao: string): Promise<IResultado> {
 
         const docsProcessados = response.docs.map((element: any) => {
             try {
-                return processaElemento(element);
+                return processaDoc(element);
             } catch (error) {
                 console.error('Erro ao processar a resposta:', error);
 
@@ -263,7 +223,7 @@ export async function buscaProfessores(): Promise<IResultado> {
 
         const docsProcessados = response.docs.map((element: any) => {
             try {
-                return processaElemento(element);
+                return processaDoc(element);
             } catch (error) {
                 console.error('Erro ao processar a resposta:', error);
 
@@ -310,7 +270,7 @@ function trataException(exception: any): string {
 }
 
 export async function inclui(osDados: any): Promise<IResultado> {
-    const dados: IPessoa = setDoc(osDados);
+    const dados: IPessoa = converteParaDoc(osDados);
     try {
         const response = await repositorio.insert(dados);
         if (!response) {
@@ -336,7 +296,7 @@ export async function inclui(osDados: any): Promise<IResultado> {
 
 export async function atualiza(oId: string, osDados: any): Promise<IResultado> {
     const id = oId;
-    const dados = setDoc(osDados);
+    const dados = converteParaDoc(osDados);
 
     try {
         const response = await repositorio.update(id, dados);

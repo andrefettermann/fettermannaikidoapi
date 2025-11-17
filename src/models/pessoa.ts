@@ -8,6 +8,7 @@ import { Decimal128, model, ObjectId, Schema } from "mongoose";
  * @author Andre Fettermann
  */
 interface IPessoa {
+    id: string,
     aniversario: string,
     matricula: string,
     nome: string,
