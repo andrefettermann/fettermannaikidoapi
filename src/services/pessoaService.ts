@@ -1,10 +1,9 @@
 // services/pessoaService.ts
 import { convertDdMmYyyyToDate, formatDateDDMMAAAA } from '../utils/date';
 import * as repositorio from '../respositories/pessoaRepository';
-import * as graduacaoRepositorio from '../respositories/graduacaoRepository';
 import { decripta, encripta } from '../utils/crypto';
 import { IPessoa } from 'src/models/pessoa';
-import { Decimal128, ObjectId } from 'mongoose';
+import { ObjectId } from 'mongoose';
 import { IResultado } from 'src/models/resultado';
 
 interface IPromocao {
@@ -12,7 +11,7 @@ interface IPromocao {
     'id_graduacao': ObjectId
 }
 
-function converteParaDoc(osDados: any): IPessoa {
+function preparaDadosGravacao(osDados: any): IPessoa {
     const docsPromocoes: IPromocao[] = [];
     osDados.promocoes.forEach((p: any)=>{
         docsPromocoes.push({
@@ -39,26 +38,35 @@ function converteParaDoc(osDados: any): IPessoa {
     return doc;
 }
 
-function processaDoc(doc: any): any {
-    const pessoa = {
-        'id': doc._id,
-        'aniversario': doc.aniversario,
-        'cpf': doc.cpf?decriptaCpf(doc.cpf):'',
-        'data_inicio_aikido': doc.data_inicio_aikido,
-        'data_matricula': doc.data_matricula,
-        'id_dojo': doc.id_dojo,
-        'id_graduacao': doc.id_graduacao,
-        'matricula': doc.matricula,
-        'nome': decripta(doc.nome),
-        'situacao': doc.situacao,
-        'tipo': doc.tipo,
-        'promocoes': doc.promocoes,
-        'dojo': doc.dojo[0],
-        'graduacao': doc.graduacao[0]
+function preparaRespostaDocs(oDoc: any): any {
+    const doc = {
+        id: oDoc._id,
+        nome: decripta(oDoc.nome),
+        aniversario: oDoc.aniversario?oDoc.aniversario:'',
+        matricula: oDoc.matricula?oDoc.matricula:'',
+        situacao: oDoc.situacao,
+        dojo: oDoc.dojo[0]?oDoc.dojo[0]:'',
+        graduacao: oDoc.graduacao[0]?oDoc.graduacao[0]:''
     }
+    return doc;
+}
 
-    return pessoa;
-
+function preparaRespostaDoc(doc: any): any {
+    doc = {
+        id: doc._id,
+        nome: decripta(doc.nome),
+        aniversario: doc.aniversario?doc.aniversario:'',
+        matricula: doc.matricula?doc.matricula:'',
+        situacao: doc.situacao,
+        cpf: doc.cpf?decriptaCpf(doc.cpf):doc.cpf,
+        tipo: doc.tipo,
+        data_inicio_aikido: doc.data_inicio_aikido?doc.data_inicio_aikido:'',
+        data_matricula: doc.data_matricula?doc.data_matricula:'',
+        promocoes: doc.promocoes,
+        dojo: doc.dojo[0]?doc.dojo[0]:'',
+        graduacao: doc.graduacao[0]?doc.graduacao[0]:''
+    }
+    return doc;
 }
 
 function decriptaCpf(cpf: any | null | undefined): string {
@@ -93,7 +101,7 @@ export async function busca(oId: string): Promise<IResultado> {
 
         return {
             sucesso: true,
-            doc: processaDoc(response.doc)
+            doc: preparaRespostaDoc(response.doc)
         };
     } catch (error) {
         console.error(`Erro em busca(oId: ${oId}):`, error);
@@ -115,7 +123,7 @@ export async function buscaTodos(): Promise<IResultado> {
 
         const docsProcessados = response.docs.map((element: any) => {
             try {
-                return processaDoc(element);
+                return preparaRespostaDocs(element);
             } catch (error) {
                 console.error('Erro ao processar a resposta:', error);
 
@@ -152,13 +160,13 @@ export async function buscaAniversariantes(oMes: string): Promise<IResultado> {
 
         const docsProcessados = response.docs.map((element: any) => {
             try {
-                return processaDoc(element);
+                return preparaRespostaDocs(element);
             } catch (error) {
                 console.error('Erro ao processar a resposta:', error);
 
                 return {
                     sucesso: false,
-                    mensagem: 'Erro ao buscar todas as pessoas',
+                    mensagem: 'Erro ao buscar os aniversariantes do mes',
                     erro: error instanceof Error ? error.message : 'Erro desconhecido'
                 };        
             }
@@ -187,13 +195,13 @@ export async function buscaSituacao(aSituacao: string): Promise<IResultado> {
 
         const docsProcessados = response.docs.map((element: any) => {
             try {
-                return processaDoc(element);
+                return preparaRespostaDocs(element);
             } catch (error) {
                 console.error('Erro ao processar a resposta:', error);
 
                 return {
                     sucesso: false,
-                    mensagem: 'Erro ao buscar pela sitiacao',
+                    mensagem: 'Erro ao buscar pela situacao',
                     erro: error instanceof Error ? error.message : 'Erro desconhecido',
                     situacao
                 };        
@@ -223,7 +231,7 @@ export async function buscaProfessores(): Promise<IResultado> {
 
         const docsProcessados = response.docs.map((element: any) => {
             try {
-                return processaDoc(element);
+                return preparaRespostaDocs(element);
             } catch (error) {
                 console.error('Erro ao processar a resposta:', error);
 
@@ -270,7 +278,7 @@ function trataException(exception: any): string {
 }
 
 export async function inclui(osDados: any): Promise<IResultado> {
-    const dados: IPessoa = converteParaDoc(osDados);
+    const dados: IPessoa = preparaDadosGravacao(osDados);
     try {
         const response = await repositorio.insert(dados);
         if (!response) {
@@ -296,7 +304,7 @@ export async function inclui(osDados: any): Promise<IResultado> {
 
 export async function atualiza(oId: string, osDados: any): Promise<IResultado> {
     const id = oId;
-    const dados = converteParaDoc(osDados);
+    const dados = preparaDadosGravacao(osDados);
 
     try {
         const response = await repositorio.update(id, dados);

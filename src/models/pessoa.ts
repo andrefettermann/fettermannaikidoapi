@@ -9,17 +9,17 @@ import { Decimal128, model, ObjectId, Schema } from "mongoose";
  */
 interface IPessoa {
     id: string,
-    aniversario: string,
-    matricula: string,
+    aniversario?: string,
+    matricula?: string,
     nome: string,
     situacao: string,
-    cpf: string,
-    data_inicio_aikido: string,
-    data_matricula: string,
+    cpf?: string,
+    data_inicio_aikido?: string,
+    data_matricula?: string,
     tipo: string,
-    id_dojo: ObjectId,
+    id_dojo?: ObjectId,
     id_graduacao: ObjectId,
-    promocoes: {
+    promocoes?: {
         data: Date,
         id_graduacao: ObjectId
     }[]
@@ -72,7 +72,7 @@ const PessoaSchema = new Schema<IPessoa>({
     id_graduacao: {
         type: mongodb.ObjectId,
         default: null,
-        required: false
+        required: [true, 'A graduação é obrigatória.']
     },
     promocoes: [
         {
@@ -82,8 +82,7 @@ const PessoaSchema = new Schema<IPessoa>({
             },
             id_graduacao: {
                 type: mongodb.ObjectId,
-                default: null,
-                required: false
+                required: [true, 'A graduação promoção é obrigatória.']
             },
         }
     ]

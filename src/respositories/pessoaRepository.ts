@@ -53,8 +53,8 @@ export async function find(id: string): Promise<IResultado> {
                 data_inicio_aikido: 1, 
                 data_matricula: 1,
                 promocoes: 1,
-                'dojo': 1,
-                'graduacao': 1
+                dojo: 1,
+                graduacao: 1
             } 
         },
         { $limit: 1 }
@@ -102,9 +102,8 @@ export async function findAll(): Promise<IResultado>{
                 aniversario: 1,
                 matricula: 1,
                 situacao: 1,
-                'dojo.nome': 1,
-                'graduacao.nome': 1,
-                'graduacao.faiax': 1
+                dojo: 1,
+                graduacao: 1
             } 
         },
     ];
@@ -146,9 +145,8 @@ export  async function findBySituacao(situacao: string): Promise<IResultado> {
                 aniversario: 1,
                 matricula: 1,
                 situacao: 1,
-                'dojo.nome': 1,
-                'graduacao.nome': 1,
-                'graduacao.faiax': 1
+                dojo: 1,
+                graduacao: 1
             } 
         },
     ];
@@ -191,9 +189,8 @@ export async function findByTipo(oTipo: string): Promise<IResultado> {
                 aniversario: 1,
                 matricula: 1,
                 situacao: 1,
-                'dojo.nome': 1,
-                'graduacao.nome': 1,
-                'graduacao.faiax': 1
+                dojo: 1,
+                graduacao: 1
             } 
         },
     ];
@@ -238,9 +235,8 @@ export async function findByAniversario(oMes: string): Promise<IResultado> {
                     aniversario: 1,
                     matricula: 1,
                     situacao: 1,
-                    'dojo.nome': 1,
-                    'graduacao.nome': 1,
-                    'graduacao.faiax': 1
+                    dojo: 1,
+                    graduacao: 1
                 } 
             },
             //{ $sort: { aniversario: 1 } }
