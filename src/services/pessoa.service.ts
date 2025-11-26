@@ -1,6 +1,6 @@
-// services/pessoaService.ts
+// /src/services/pessoa.service.ts
 import { convertDdMmYyyyToDate, formatDateDDMMAAAA } from '../utils/date';
-import * as repositorio from '../respositories/pessoaRepository';
+import * as repositorio from '../repositories/pessoa.repository';
 import { decripta, encripta } from '../utils/crypto';
 import { IPessoa } from 'src/models/pessoa';
 import { ObjectId } from 'mongoose';
@@ -38,7 +38,7 @@ function preparaDadosGravacao(osDados: any): IPessoa {
     return doc;
 }
 
-function preparaRespostaDocs(oDoc: any): any {
+function processaRespostaLista(oDoc: any): any {
     const doc = {
         id: oDoc._id,
         nome: decripta(oDoc.nome),
@@ -51,7 +51,7 @@ function preparaRespostaDocs(oDoc: any): any {
     return doc;
 }
 
-function preparaRespostaDoc(doc: any): any {
+function processaResposta(doc: any): any {
     doc = {
         id: doc._id,
         nome: decripta(doc.nome),
@@ -101,14 +101,12 @@ export async function busca(oId: string): Promise<IResultado> {
 
         return {
             sucesso: true,
-            doc: preparaRespostaDoc(response.doc)
+            doc: processaResposta(response.doc)
         };
-    } catch (error) {
-        console.error(`Erro em busca(oId: ${oId}):`, error);
-        
+    } catch (error) {        
         return {
             sucesso: false,
-            mensagem: `Erro ao buscar a pessoa de id ${id}`,
+            mensagem: `Erro ao buscar a pessoa pelo id ${id}`,
             erro: error instanceof Error ? error.message : 'Erro desconhecido'
         };
 
@@ -123,13 +121,13 @@ export async function buscaTodos(): Promise<IResultado> {
 
         const docsProcessados = response.docs.map((element: any) => {
             try {
-                return preparaRespostaDocs(element);
+                return processaRespostaLista(element);
             } catch (error) {
                 console.error('Erro ao processar a resposta:', error);
 
                 return {
                     sucesso: false,
-                    mensagem: 'Erro ao buscar todas as pessoas',
+                    mensagem: 'Erro ao processar a resposta da busca de todas as pessoas.',
                     erro: error instanceof Error ? error.message : 'Erro desconhecido'
                 };        
             }
@@ -160,13 +158,11 @@ export async function buscaAniversariantes(oMes: string): Promise<IResultado> {
 
         const docsProcessados = response.docs.map((element: any) => {
             try {
-                return preparaRespostaDocs(element);
+                return processaRespostaLista(element);
             } catch (error) {
-                console.error('Erro ao processar a resposta:', error);
-
                 return {
                     sucesso: false,
-                    mensagem: 'Erro ao buscar os aniversariantes do mes',
+                    mensagem: 'Erro ao processar a resposta da busca de aniversariantes do mes',
                     erro: error instanceof Error ? error.message : 'Erro desconhecido'
                 };        
             }
@@ -176,9 +172,7 @@ export async function buscaAniversariantes(oMes: string): Promise<IResultado> {
             sucesso: true,
             docs: docsProcessados
         };
-    } catch (error) {
-        console.error(`Erro em buscaAniversariantes(oMes: ${mes}):`, error);
-        
+    } catch (error) {        
         return {
             sucesso: false,
             mensagem: `Erro ao buscar os aniversariantes do mês ${mes}`,
@@ -195,15 +189,12 @@ export async function buscaSituacao(aSituacao: string): Promise<IResultado> {
 
         const docsProcessados = response.docs.map((element: any) => {
             try {
-                return preparaRespostaDocs(element);
+                return processaRespostaLista(element);
             } catch (error) {
-                console.error('Erro ao processar a resposta:', error);
-
                 return {
                     sucesso: false,
-                    mensagem: 'Erro ao buscar pela situacao',
+                    mensagem: `Erro ao processar a resposta da busca pela situação`,
                     erro: error instanceof Error ? error.message : 'Erro desconhecido',
-                    situacao
                 };        
             }
         });
@@ -213,11 +204,9 @@ export async function buscaSituacao(aSituacao: string): Promise<IResultado> {
             docs: ordena(docsProcessados)
         };
     } catch (error) {
-        console.error(`Erro em buscaSituacao(aSituacao: ${aSituacao}):`, error);
-        
         return {
             sucesso: false,
-            mensagem: `Erro ao buscar as pessoas ${situacao}`,
+            mensagem: `Erro ao buscar as pessoas pela situação ${situacao}`,
             erro: error instanceof Error ? error.message : 'Erro desconhecido'
         };
     }
@@ -225,19 +214,16 @@ export async function buscaSituacao(aSituacao: string): Promise<IResultado> {
 
 export async function buscaProfessores(): Promise<IResultado> {
     try {
-        //const resposta: any = await repositorio.findByIsProfessor(true);
         const response: any = await repositorio.findByTipo('professor');
         if (!response.sucesso || !Array.isArray(response.docs)) return response;
 
         const docsProcessados = response.docs.map((element: any) => {
             try {
-                return preparaRespostaDocs(element);
+                return processaRespostaLista(element);
             } catch (error) {
-                console.error('Erro ao processar a resposta:', error);
-
                 return {
                     sucesso: false,
-                    mensagem: 'Erro ao buscar os professores',
+                    mensagem: 'Erro ao processar a resposta da busca de professores',
                     erro: error instanceof Error ? error.message : 'Erro desconhecido'
                 };        
             }
@@ -294,7 +280,6 @@ export async function inclui(osDados: any): Promise<IResultado> {
             doc: response.doc
         };
     } catch (error: any) {
-//        throw new Error(trataException(error));
         return {
             sucesso: false,
             mensagem: trataException(error)

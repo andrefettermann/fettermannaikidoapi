@@ -1,3 +1,4 @@
+// src/repositories/pessoa.repository.ts
 import { ObjectId } from "mongodb";
 import { IPessoa, Pessoa } from "../models/pessoa";
 import { connectDB } from "../db";
@@ -71,7 +72,7 @@ export async function find(id: string): Promise<IResultado> {
         if (response.length === 0) {
             return {
                 'sucesso': false,
-                'mensagem': "Pessoa não encontrada."
+                'mensagem': `Pessoa não encontrada: id= ${id}`
             }
         }
 
@@ -79,15 +80,8 @@ export async function find(id: string): Promise<IResultado> {
             'sucesso': true,
             'doc': response[0]
         }
-
     } catch(error) {
-        console.error(`Erro em find(id: ${id}):`, error);
-        
-        return {
-            'sucesso': false,
-            'mensagem': `Erro ao buscar a pessoa de id ${id}`,
-            'erro': error instanceof Error ? error.message : 'Erro desconhecido'
-        };
+        throw error;
     }
 }
 
@@ -112,22 +106,16 @@ export async function findAll(): Promise<IResultado>{
         await connectDB();
 
         const response: IPessoa[] = await Pessoa.aggregate(pipeline)
-        .allowDiskUse(true)
-        .option({ maxTimeMS: 15000 })
-        .exec();
+            .allowDiskUse(true)
+            .option({ maxTimeMS: 15000 })
+            .exec();
 
         return {
             sucesso: true,
             docs: response
         };
     } catch(error) {
-        console.error(`Erro em findAll:`, error);
-        
-        return {
-            'sucesso': false,
-            'mensagem': `Erro ao buscar todos os dojos`,
-            'erro': error instanceof Error ? error.message : 'Erro desconhecido'
-        };
+        throw error;
     }
 }
 
@@ -162,14 +150,8 @@ export  async function findBySituacao(situacao: string): Promise<IResultado> {
             'sucesso': true,
             'docs': response
         };
-    } catch(error){
-        console.error(`Erro em findBySituacao(situacao: ${situacao}):`, error);
-        
-        return {
-            'sucesso': false,
-            'mensagem': `Erro ao buscar a pessoa de situacao ${situacao}`,
-            'erro': error instanceof Error ? error.message : 'Erro desconhecido'
-        };
+    } catch(error) {
+        throw error;
     }
 }
 
@@ -206,14 +188,8 @@ export async function findByTipo(oTipo: string): Promise<IResultado> {
             'sucesso': true,
             'docs': response
         };
-    } catch(error){
-        console.error(`Erro em findByTipo(oTipo: ${tipo}):`, error);
-
-        return {
-            'sucesso': false,
-            'mensagem': `Erro ao buscar a pessoa do tipo ${tipo}`,
-            'erro': error instanceof Error ? error.message : 'Erro desconhecido'
-        };
+    } catch(error) {
+        throw error;
     }
 }
 
@@ -250,14 +226,8 @@ export async function findByAniversario(oMes: string): Promise<IResultado> {
             'sucesso': true,
             'docs': response
         };
-    } catch(error){
-        console.error(`Erro em findByAniversario(mes: ${mes}):`, error);
-        
-        return {
-            'sucesso': false,
-            'mensagem': `Erro ao buscar os aniversariantes do mes ${mes}`,
-            'erro': error instanceof Error ? error.message : 'Erro desconhecido'
-        };
+    } catch(error) {
+        throw error;
     }
 }
 
@@ -271,15 +241,8 @@ export async function findByIdGraduacao(id: string): Promise<IResultado> {
             'sucesso': true,
             'docs': response
         }
-    } catch(error){
-        console.error(`Erro em findByIdGraduacao(mes: ${id}):`, error);
-        
-        return {
-            'sucesso': false,
-            'mensagem': `Erro ao buscar as pessoa com a graduacao ${id}`,
-            'erro': error instanceof Error ? error.message : 'Erro desconhecido'
-        };
-
+    } catch(error) {
+        throw error;
     }
 }
 
@@ -301,8 +264,7 @@ export async function insert(doc: IPessoa): Promise<IResultado>{
             'sucesso': true,
             'doc': response // ou: { sucesso: true, id: (response as any)._id }
         }
-    } catch (error) {
-        console.log(error)
+    } catch(error) {
         throw error;
     }
 };

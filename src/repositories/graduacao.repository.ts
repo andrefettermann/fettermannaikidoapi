@@ -1,4 +1,4 @@
-/* apiGraduacaoRepository.ts */
+// /src/repositories/graduacao.repository.ts
 import { ObjectId } from "mongodb";
 import { Graduacao, IGraduacao } from "../models/graduacao";
 import { connectDB } from "../db";
@@ -46,7 +46,7 @@ export async function find(id: string): Promise<IResultado> {
         if (response.length === 0) {
             return {
                 sucesso: false,
-                mensagem: "Registro não encontrado"
+                mensagem: `Graduação não encontrada: id=${id}`
             }
         }
 
@@ -54,16 +54,8 @@ export async function find(id: string): Promise<IResultado> {
             sucesso: true,
             doc: response[0]
         }
-    }  catch(error) {
-        if (process.env.NODE_ENV === 'development') {
-            console.error(`Erro em find(id: ${id}):`, error);
-        }
-        
-        return {
-            sucesso: false,
-            mensagem: `Erro ao buscar a graduacao de id ${id}`,
-            erro: error instanceof Error ? error.message : 'Erro desconhecido'
-        };
+    } catch(error) {
+        throw error;
     }
 }
 
@@ -72,27 +64,19 @@ export async function findAll(): Promise<IResultado>{
         await connectDB();
 
         const response = await Graduacao.aggregate([
-            lookupPessoas,
-            { $sort: { sequencia: 1 } }
-        ])
-        .allowDiskUse(true)
-        .option({ maxTimeMS: 15000 })
-        .exec();
+                lookupPessoas,
+                { $sort: { sequencia: 1 } }
+            ])
+            .allowDiskUse(true)
+            .option({ maxTimeMS: 15000 })
+            .exec();
 
         return {
             sucesso: true,
             docs: response
         };
-    } catch(error){
-        if (process.env.NODE_ENV === 'development') {
-            console.error(`Erro em findAll:`, error);
-        }
-        
-        return {
-            sucesso: false,
-            mensagem: `Erro ao buscar todos os registros`,
-            erro: error instanceof Error ? error.message : 'Erro desconhecido'
-        };
+    } catch(error) {
+        throw error;
     }
 }
 
@@ -104,8 +88,7 @@ export async function insert(data: IGraduacao): Promise<IResultado> {
         if (!response) {
             return {
                 sucesso: false,
-                mensagem: "Erro ao incluir os dados",
-                erro: "Registro não encontrado"
+                mensagem: "Não foi posśivel incluir a graduação",
             }
         }
 
@@ -135,8 +118,7 @@ export async function update(id: string, data: IGraduacao): Promise<IResultado>{
         if (!response) {
             return {
                 sucesso: false,
-                mensagem: "Erro ao atualizar os dados",
-                erro: "Registro não encontrado"
+                mensagem: `Update - Graduação não encontrada: id=${id}`
             }
         }
     
@@ -156,8 +138,7 @@ export async function remove(id: String): Promise<IResultado>{
         if (!response) {
             return {
                 sucesso: false,
-                mensagem: "Erro ao atualizar os dados",
-                erro: "Registro não encontrado"
+                mensagem: `Delete - Graduação não encontrada: id=${id}`
             }
         }
     

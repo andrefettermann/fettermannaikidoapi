@@ -2,7 +2,7 @@
 import { Router, Request, Response } from 'express';
 import { authenticate } from '../middleware/auth';
 import Joi from 'joi';
-import * as controller from '../controllers/dojoController';
+import * as controller from '../controllers/dojo.controller';
 
 const router = Router();
 

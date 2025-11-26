@@ -1,7 +1,8 @@
+// /src/routes/pessoas.router.ts
 import { Router, Request, Response } from 'express';
 import { authenticate } from '../middleware/auth';
 import Joi from 'joi';
-import * as controller from '../controllers/pessoaController';
+import * as controller from '../controllers/pessoa.controller';
 
 const router = Router();
 

@@ -1,4 +1,4 @@
-// src/repositories/cobrancaRepository.ts
+// src/repositories/cobranca.repository.ts
 import { ObjectId } from "mongodb";
 import { Cobranca, ICobranca } from "../models/cobranca";
 import { connectDB } from "../db";
@@ -80,17 +80,8 @@ export async function find(id: string): Promise<IResultado> {
             sucesso: true,
             doc: response[0]
         }
-    }  catch(error) {
-        if (process.env.NODE_ENV === 'development') {
-            console.error(`Erro em find(id: ${id}):`, error);
-        }
-        
-        return {
-            sucesso: false,
-            mensagem: `Erro ao buscar a cobrnaca de id ${id}`,
-            erro: error instanceof Error ? error.message : 'Erro desconhecido'
-        };
-
+    } catch(error) {
+        throw error;
     }
 }
 
@@ -117,16 +108,8 @@ export async function findAll(): Promise<IResultado>{
                 sucesso: true,
                 docs: response
             };
-        } catch(error){
-        if (process.env.NODE_ENV === 'development') {
-            console.error(`Erro em findAll:`, error);
-        }
-        
-        return {
-            sucesso: false,
-            mensagem: `Erro ao buscar todos os registros`,
-            erro: error instanceof Error ? error.message : 'Erro desconhecido'
-        };
+    } catch(error) {
+        throw error;
     }
 }
 
@@ -158,16 +141,8 @@ export async function findByIdPessoa(oId: string): Promise<IResultado>{
             sucesso: true,
             docs: response
         };
-    } catch(error){
-        if (process.env.NODE_ENV === 'development') {
-            console.error(`Erro em findByIdPessoa(id: ${id}):`, error);
-        }
-        
-        return {
-            sucesso: false,
-            mensagem: `Erro ao buscar a cobranca da pessoa de id ${id}`,
-            erro: error instanceof Error ? error.message : 'Erro desconhecido'
-        };
+    } catch(error) {
+        throw error;
     }
 }
 
@@ -196,16 +171,8 @@ export async function findByIdTaxa(oId: string): Promise<IResultado>{
             sucesso: true,
             docs: response
         };
-    } catch(error: any){
-        if (process.env.NODE_ENV === 'development') {
-            console.error(`Erro em findByIdTaxa(id: ${id}):`, error);
-        }
-        
-        return {
-            sucesso: false,
-            mensagem: `Erro ao buscar a cobranca da taxa de id ${id}`,
-            erro: error instanceof Error ? error.message : 'Erro desconhecido'
-        };
+    } catch(error) {
+        throw error;
     }
 }
 
@@ -235,16 +202,8 @@ export async function findByIdPagamento(oId: string): Promise<IResultado>{
             sucesso: true,
             docs: response
         };
-    } catch(error: any){
-        if (process.env.NODE_ENV === 'development') {
-            console.error(`Erro em findByIdPagamento(id: ${id}):`, error);
-        }
-        
-        return {
-            sucesso: false,
-            mensagem: `Erro ao buscar a cobranca do pagamento de id ${id}`,
-            erro: error instanceof Error ? error.message : 'Erro desconhecido'
-        };
+    } catch(error) {
+        throw error;
     }
 }
 
@@ -265,15 +224,8 @@ export async function insert(data: ICobranca): Promise<IResultado>{
             sucesso: true,
             doc: response // ou: { sucesso: true, id: (response as any)._id }
         }
-    } catch (error: any){
-        if (process.env.NODE_ENV === 'development') {
-            console.error(`Erro em insert:`, error);
-        }
-        return {
-            sucesso: false,
-            mensagem: `Erro ao incluir a cobranca`,
-            erro: error instanceof Error ? error.message : 'Erro desconhecido'
-        };
+    } catch(error) {
+        throw error;
     }
 };
 
@@ -302,16 +254,8 @@ export async function insertPagamento(id: string, data: any): Promise<IResultado
                 sucesso: true,
                 doc: response // ou: { sucesso: true, id: (response as any)._id }
             }
-        } catch (error: any) {
-            if (process.env.NODE_ENV === 'development') {
-                console.error(`Erro em insertPagamento(id: ${id}):`, error);
-            }
-            
-            return {
-                sucesso: false,
-                mensagem: `Erro ao incluir o pagamento da cobranca de id ${id}`,
-                erro: error instanceof Error ? error.message : 'Erro desconhecido'
-            };
+    } catch(error) {
+        throw error;
     }
 };
 
@@ -353,16 +297,8 @@ export async function update(id: string, data: ICobranca): Promise<IResultado>{
             sucesso: true,
             doc: response
         };
-    } catch(error: any){
-        if (process.env.NODE_ENV === 'development') {
-            console.error(`Erro em update(id: ${id}):`, error);
-        }
-        
-        return {
-            sucesso: false,
-            mensagem: `Erro ao atualizar a cobranca de id ${id}`,
-            erro: error instanceof Error ? error.message : 'Erro desconhecido'
-        };
+    } catch(error) {
+        throw error;
     }
 }
 
@@ -391,16 +327,8 @@ export async function updatePagamento(oIdCobranca: string, oIdPagamento: string,
             sucesso: true,
             doc: response
         };
-    } catch (error: any) {
-        if (process.env.NODE_ENV === 'development') {
-            console.error(`Erro em updatePagamento(idCobranca: ${idCobranca}, idPagamento: ${idPagamento}):`, error);
-        }
-        
-        return {
-            sucesso: false,
-            mensagem: `Erro ao atualizar o pagamento de id ${idPagamento} da cobranca de id ${idCobranca}`,
-            erro: error instanceof Error ? error.message : 'Erro desconhecido'
-        };
+    } catch(error) {
+        throw error;
     }
 };
 
@@ -429,15 +357,7 @@ export async function deletePagamento(oIdCobranca: string, oIdPagamento: string)
             sucesso: true,
             doc: response
         };
-    } catch (error: any) {
-        if (process.env.NODE_ENV === 'development') {
-            console.error(`Erro em deletePagamento(idCobranca: ${idCobranca}, idPagamento: ${idPagamento}):`, error);
-        }
-        
-        return {
-            sucesso: false,
-            mensagem: `Erro ao excluir o pagamento de id ${idPagamento} da cobranca de id ${idCobranca}`,
-            erro: error instanceof Error ? error.message : 'Erro desconhecido'
-        };
+    } catch(error) {
+        throw error;
     }
 };

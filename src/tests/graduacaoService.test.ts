@@ -1,7 +1,7 @@
 // src/tests/graduacaoService.test.ts
 // npm run test gredaucaoService
 import { connectDB, disconnectDB } from "../db";
-import * as servico from "../services/graduacaoService";
+import * as servico from "../services/graduacao.service";
 
 describe('Testes unitarios do servico de graduacoes', () => {
 

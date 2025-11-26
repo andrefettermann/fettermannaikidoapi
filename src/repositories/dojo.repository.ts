@@ -1,4 +1,4 @@
-// dojoRespository.ts
+// /src/repositories/dojo.repository.ts
 import { ObjectId } from "mongodb";
 import { Dojo, IDojo } from "../models/dojo";
 import { connectDB } from "../db";
@@ -45,6 +45,7 @@ const projectDojos = {
         cidade: 1,
         uf: 1,
         is_ativo: 1,
+        'professor._id': 1,
         'professor.nome': 1,
         horarios: 1
     } 
@@ -76,7 +77,7 @@ export async function find(id: string): Promise<IResultado> {
         if (response.length === 0) {
             return {
                 sucesso: false,
-                mensagem: "Registro não encontrado"
+                mensagem: `Dojo não encontrado: ${id}`
             }
         }
 
@@ -85,13 +86,7 @@ export async function find(id: string): Promise<IResultado> {
             doc: response[0]
         }
     } catch(error) {
-        console.error(`Erro em find(id: ${id}):`, error);
-        
-        return {
-            sucesso: false,
-            mensagem: `Erro ao buscar o dojo de id ${id}`,
-            erro: error instanceof Error ? error.message : 'Erro desconhecido'
-        };
+        throw error;
     }
 }
 
@@ -116,13 +111,7 @@ export async function findAll(): Promise<IResultado> {
         };
 
     } catch(error) {
-        console.error(`Erro em findAll:`, error);
-        
-        return {
-            sucesso: false,
-            mensagem: `Erro ao buscar todos os registros`,
-            erro: error instanceof Error ? error.message : 'Erro desconhecido'
-        };
+        throw error;
     }
 }
 
@@ -149,13 +138,7 @@ export async function findByIsAtivo(ativo: boolean): Promise<IResultado> {
         };
         
     } catch (error) {
-        console.error(`Erro em findByIsAtivo(ativo: ${ativo}):`, error);
-        
-        return {
-            sucesso: false,
-            mensagem: `Erro ao buscar registros ${ativo ? 'ativos' : 'inativos'}`,
-            erro: error instanceof Error ? error.message : 'Erro desconhecido'
-        };
+        throw error;
     }
 }
 
@@ -168,7 +151,6 @@ export async function insert(data: IDojo): Promise<IResultado>{
             return {
                 sucesso: false,
                 mensagem: "Erro ao incluir os dados",
-                erro: "Registro não encontrado"
             }
         }
 
@@ -197,8 +179,7 @@ export async function update(id: string, osDados: IDojo): Promise<IResultado> {
         if (!response) {
             return {
                 sucesso: false,
-                mensagem: "Erro ao atualizar os dados",
-                erro: "Registro não encontrado"
+                mensagem: `Update - Dojo não encontrado: ${id}`,
             }
         }
     

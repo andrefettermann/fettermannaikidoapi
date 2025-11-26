@@ -2,7 +2,7 @@
 import { Router, Request, Response } from 'express';
 import { authenticate } from '../middleware/auth';
 import Joi from 'joi';
-import * as controller from '../controllers/cobrancaController';
+import * as controller from '../controllers/cobranca.controller';
 
 const router = Router();
 

@@ -1,1 +1,68 @@
-[]
+[
+  {
+    "description": "",
+    "elements": [
+      {
+        "description": "",
+        "id": "login;usuario-cadastrado",
+        "keyword": "Cenario",
+        "line": 26,
+        "name": "Usuario cadastrado",
+        "steps": [
+          {
+            "arguments": [],
+            "keyword": "Dado ",
+            "line": 27,
+            "name": "que todos os dados do usuario sao informados",
+            "match": {
+              "location": "features/steps/usuarios.steps.ts:37"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 374776
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Quando ",
+            "line": 28,
+            "name": "e solicitado fazer o login",
+            "match": {
+              "location": "features/steps/usuarios.steps.ts:60"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 242425805
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Entao ",
+            "line": 29,
+            "name": "deveria se concedido acesso ao sistema",
+            "match": {
+              "location": "features/steps/usuarios.steps.ts:96"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 183434
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@login_03",
+            "line": 25
+          }
+        ],
+        "type": "scenario"
+      }
+    ],
+    "id": "login",
+    "line": 17,
+    "keyword": "Funcionalidade",
+    "name": "Login",
+    "tags": [],
+    "uri": "features/login.feature"
+  }
+]

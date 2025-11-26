@@ -1,10 +1,7 @@
-/**
- * src/services/cobrancaService.ts
- */
-
+// src/services/cobranca.service.ts
 import { convertDdMmYyyyToDate, formatDateDDMMAAAA } from '../utils/date';
 import { ICobranca } from '../models/cobranca';
-import * as repositorio from '../respositories/cobrancaRepository';
+import * as repositorio from '../repositories/cobranca.repository';
 import { decripta } from '../utils/crypto';
 import { IResultado } from '../models/resultado';
 
@@ -57,7 +54,11 @@ export async function busca(oId: string): Promise<IResultado> {
 
         return { sucesso: true, doc: response.doc };
     } catch (error: any) {
-        throw new Error(error.message);
+        return {
+            sucesso: false,
+            mensagem: 'Erro desconhecido ao buscar a cobrança pelo id',
+            erro: error instanceof Error ? error.message : 'Erro desconhecido'
+        };
     }
 }
 
@@ -76,7 +77,11 @@ export async function buscaTodos(): Promise<IResultado> {
             docs: response.docs
         };
     } catch (error) {
-        throw error;
+        return {
+            sucesso: false,
+            mensagem: 'Erro desconhecido ao buscar todas as cobranças',
+            erro: error instanceof Error ? error.message : 'Erro desconhecido'
+        };
     }
 }
 
@@ -96,7 +101,11 @@ export async function buscaPorTaxa(oId: string): Promise<IResultado> {
             docs: response.docs
         };
     } catch (error) {
-        throw error;
+        return {
+            sucesso: false,
+            mensagem: 'Erro desconhecido ao buscar a cobrança pela taxa',
+            erro: error instanceof Error ? error.message : 'Erro desconhecido'
+        };
     }
 }
 
@@ -116,7 +125,11 @@ export async function buscaPorPagamento(oId: string): Promise<IResultado> {
             docs: response.docs
         };
     } catch (error) {
-        throw error;
+        return {
+            sucesso: false,
+            mensagem: 'Erro desconhecido ao buscar a cobrança pelo pagamento',
+            erro: error instanceof Error ? error.message : 'Erro desconhecido'
+        };
     }
 }
 
@@ -136,7 +149,11 @@ export async function buscaPorPessoa(oId: string): Promise<IResultado> {
             docs: response.docs
         };
     } catch (error) {
-        throw error;
+                return {
+            sucesso: false,
+            mensagem: 'Erro desconhecido ao buscar a cobrança pela pessoa',
+            erro: error instanceof Error ? error.message : 'Erro desconhecido'
+        };
     }
 }
 
@@ -176,13 +193,11 @@ export async function inclui(osDados: any): Promise<IResultado> {
             doc: response.doc
         };
     } catch (error) {
-        //throw new Error(trataException(error));
         return {
             sucesso: false,
             mensagem: trataException(error)
         }
     }
-
 }
 
 export async function atualiza(oId: string, osDados: any): Promise<IResultado> {
@@ -202,7 +217,6 @@ export async function atualiza(oId: string, osDados: any): Promise<IResultado> {
             doc: response.doc
         };
     } catch (error) {
-        //throw new Error(trataException(error));
         return {
             sucesso: false,
             mensagem: trataException(error)
@@ -298,4 +312,3 @@ export async function excluiPagamento(oIdCobranca: string, oIdPagamento: string)
         }
     }
 }
-

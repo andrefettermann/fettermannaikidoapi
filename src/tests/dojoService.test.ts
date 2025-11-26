@@ -1,6 +1,6 @@
 // src/tests/dojoService.test.ts
 import { connectDB, disconnectDB } from "../db";
-import * as servico from "../services/dojoService";
+import * as servico from "../services/dojo.service";
 
 describe('Testes unitarios do servico de dojo', () => {
 

@@ -20,15 +20,15 @@ export async function find(id: string): Promise<IResultado> {
         await connectDB();
 
         const response = await Taxa.aggregate(pipeline)
-        .allowDiskUse(true)
-        .option({ maxTimeMS: 15000 })
-        .exec();
+            .allowDiskUse(true)
+            .option({ maxTimeMS: 15000 })
+            .exec();
 
         //const response = await Taxa.findById(id).allowDiskUse(true).exec();
         if (response.length === 0) {
             return {
                 sucesso: false,
-                mensagem: "Registro não encontrado"
+                mensagem: `Taxa não encontrada: id=${id}`
             }
         }
 
@@ -36,16 +36,8 @@ export async function find(id: string): Promise<IResultado> {
             sucesso: true,
             doc: response[0]
         }
-    }  catch(error) {
-        if (process.env.NODE_ENV === 'development') {
-            console.error(`Erro em find(id: ${id}):`, error);
-        }
-        
-        return {
-            sucesso: false,
-            mensagem: `Erro ao buscar a taxa de id ${id}`,
-            erro: error instanceof Error ? error.message : 'Erro desconhecido'
-        };
+    } catch(error) {
+        throw error;
     }
 }
 
@@ -59,16 +51,8 @@ export async function findAll(): Promise<IResultado>{
             sucesso: true,
             docs: response
         };
-    } catch(error){
-        if (process.env.NODE_ENV === 'development') {
-            console.error(`Erro em findAll:`, error);
-        }
-        
-        return {
-            sucesso: false,
-            mensagem: `Erro ao buscar todos os registros`,
-            erro: error instanceof Error ? error.message : 'Erro desconhecido'
-        };
+    } catch(error) {
+        throw error;
     }
 }
 

@@ -2,12 +2,13 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import path from 'path';
 import cookieParser from 'cookie-parser';
-import pessoasRoute from './routes/pessoasRouter';
-import taxasRoute from './routes/taxasRouter';
+import pessoasRoute from './routes/pessoas.router';
+import taxasRoute from './routes/taxas.router';
 import dojosRoute from './routes/dojosRouter';
 import graduacoesRoute from './routes/graduacoesRouter';
 import cobrancasRoute from './routes/cobrancasRouter';
-import { generateToken } from './services/authService';
+import usuarioRoute from './routes/usuario.router'
+import { generateToken } from './services/auth.service';
 import dotenv from 'dotenv'
 
 dotenv.config();
@@ -59,6 +60,7 @@ app.post('/gera-token', basicAuth, (req, res) => {
 
 // Rotas protegidas
 //app.use('/api/auth', authRoutes);
+app.use('/api/login', usuarioRoute);
 app.use('/api/pessoas', pessoasRoute);
 app.use('/api/taxas', taxasRoute);
 app.use('/api/dojos', dojosRoute);

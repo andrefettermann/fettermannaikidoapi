@@ -1,6 +1,6 @@
-// src/controllers/cobrancaController.ts
+// src/controllers/cobranca.controller.ts
 import { Request, Response, NextFunction, response } from 'express';
-import * as servico from "../services/cobrancaService";
+import * as servico from "../services/cobranca.service";
 
 const MENSAGEM_ERRO_LER = "Erro ao ler os dados";
 

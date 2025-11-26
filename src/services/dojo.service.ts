@@ -1,6 +1,6 @@
-// services/dojoService.ts
+// src/services/dojo.service.ts
 import { IDojo } from '../models/dojo';
-import * as repositorio from '../respositories/dojoRepository';
+import * as repositorio from '../repositories/dojo.repository';
 import { decripta } from '../utils/crypto';
 import { IResultado } from '../models/resultado'
 
@@ -30,29 +30,54 @@ export async function busca(oId: string): Promise<IResultado> {
         const response = await repositorio.find(id);
         if (!response.sucesso || !response.doc) return response;
 
-        const doc = response.doc;
+        //const doc = response.doc;
 
-        if (doc.id_professor) {
-            doc.id_professor = doc.id_professor.toString();
-        }
+        //if (doc.id_professor) {
+        //    doc.id_professor = doc.id_professor.toString();
+       // }
 
-        if (Array.isArray(doc.professor) && doc.professor[0]?.nome) {
+        if (Array.isArray(response.doc.professor) && response.doc.professor[0]?.nome) {
             try {
-                doc.professor[0].nome = decripta(doc.professor[0].nome);
+                response.doc.professor[0]._id = response.doc.professor[0]._id.toString();
+                response.doc.professor[0].nome = decripta(response.doc.professor[0].nome);
             } catch (_) {}
         }
 
-        if (Array.isArray(doc.alunos)) {
-            doc.alunos.forEach((a: any) => {
+        if (Array.isArray(response.doc.alunos)) {
+            response.doc.alunos.forEach((a: any) => {
                 if (a?.nome) {
                     try { a.nome = decripta(a.nome); } catch (_) {}
                 }
             });
         }
 
+        const doc = {
+            id: response.doc._id,
+            nome: response.doc.nome,
+            endereco: response.doc.endereco,
+            bairro: response.doc.bairro,
+            cidade: response.doc.cidade,
+            uf: response.doc.uf,
+            pais: response.doc.pais,
+            url: response.doc.url,
+            emai: response.doc.email,
+            horarios: response.doc.horarios,
+            is_ativo: response.doc.is_ativo,
+            local: response.doc.local,
+            professor: {
+                id: response.doc.professor[0]._id || '',
+                nome: response.doc.professor[0].nome || '',
+            },
+            alunos: response.doc.alunos
+        }
+
         return { sucesso: true, doc };
     } catch (error) {
-        throw error;
+        return {
+            sucesso: false,
+            mensagem: 'Erro desconhecido ao buscar o dojo pelo id',
+            erro: error instanceof Error ? error.message : 'Erro desconhecido'
+        };
     }
 }
 
@@ -61,22 +86,48 @@ export async function buscaTodos(): Promise<IResultado> {
         const response: IResultado = await repositorio.findAll();
         if (!response.sucesso || !Array.isArray(response.docs)) return response;
 
+        const docs: any[] = [];
+
         response.docs.forEach((element: any) => {
-            if (element.id_professor) {
-                element.id_professor = element.id_professor.toString();
-            }
             if (Array.isArray(element.professor)) {
                 element.professor.forEach((p: any) => {
                     if (p?.nome) {
-                        try { p.nome = decripta(p.nome); } catch (_) {}
+                        try { 
+                            p.nome = decripta(p.nome); 
+                        } catch (error) {
+                            return {
+                                sucesso: false,
+                                mensagem: 'Erro descriptografar nome do professor',
+                                erro: error instanceof Error ? error.message : 'Erro desconhecido'
+                            };
+                        }
                     }
                 });
             }
+
+            const doc = {
+                id: element._id,
+                nome: element.nome,
+                endereco: element.endereco,
+                cidade: element.cidade,
+                uf: element.uf,
+                professor: {
+                    id: element.professor[0]._id || '',
+                    nome: element.professor[0].nome || '',
+                },
+                horarios: element.horarios
+            }
+
+            docs.push(doc);
         });
 
-        return { sucesso: true, docs: response.docs };
+        return { sucesso: true, docs };
     } catch (error) {
-        throw error;
+        return {
+            sucesso: false,
+            mensagem: 'Erro desconhecido ao buscar todos os dojos',
+            erro: error instanceof Error ? error.message : 'Erro desconhecido'
+        };
     }
 }
 
@@ -85,22 +136,50 @@ export async function buscaAtivos(): Promise<IResultado> {
         const response: IResultado = await repositorio.findByIsAtivo(true);
         if (!response.sucesso || !Array.isArray(response.docs)) return response;
 
+        const docs: any[] = [];
+
         response.docs.forEach((element: any) => {
-            if (element.id_professor) {
-                element.id_professor = element.id_professor.toString();
-            }
             if (Array.isArray(element.professor)) {
-                element.professor.forEach((p: any) =>{
+                element.professor.forEach((p: any) => {
                     if (p?.nome) {
-                        try { p.nome = decripta(p.nome); } catch (_) {}
+                        try { 
+                            p.nome = decripta(p.nome); 
+                        } catch (error) {
+                            return {
+                                sucesso: false,
+                                mensagem: 'Erro descriptografar nome do professor',
+                                erro: error instanceof Error ? error.message : 'Erro desconhecido'
+                            };
+                        }
                     }
-                })
+                });
             }
+
+            const doc = {
+                id: element._id,
+                local: element.local,
+                nome: element.nome,
+                endereco: element.endereco,
+                bairro: element.bairro,
+                cidade: element.cidade,
+                uf: element.uf,
+                professor: {
+                    id: element.professor[0]._id || '',
+                    nome: element.professor[0].nome || '',
+                },
+                horarios: element.horarios
+            }
+
+            docs.push(doc);
         });
 
-        return { sucesso: true, docs: response.docs };
+        return { sucesso: true, docs };
     } catch (error) {
-        throw error;
+        return {
+            sucesso: false,
+            mensagem: 'Erro desconhecido ao buscar os dojos ativos',
+            erro: error instanceof Error ? error.message : 'Erro desconhecido'
+        };
     }
 }
 
@@ -159,11 +238,9 @@ export async function buscaInativos(): Promise<IResultado> {
         };
         
     } catch (error) {
-        console.error('Erro em buscaInativos:', error);
-        
         return {
             sucesso: false,
-            mensagem: 'Erro ao buscar registros inativos',
+            mensagem: 'Erro ao buscar os dojos inativos',
             erro: error instanceof Error ? error.message : 'Erro desconhecido'
         };
     }
@@ -194,7 +271,7 @@ export async function inclui(osDados: any): Promise<IResultado> {
             return {
                 sucesso: false,
                 mensagem: 'Erro ao incluir os dados',
-                erro: undefined
+                erro: 'Erro desconhecido'
             };
         }
 
@@ -203,7 +280,6 @@ export async function inclui(osDados: any): Promise<IResultado> {
             doc: response.doc
         };
     } catch (error: any) {
-//        throw new Error(trataException(error));
         return {
             sucesso: false,
             mensagem: trataException(error)
@@ -221,6 +297,7 @@ export async function atualiza(oId: string, osDados: any): Promise<IResultado> {
             return {
                 sucesso: false,
                 mensagem: 'Erro ao atualizar os dados',
+                erro: 'Erro desconhecido'
             };
         }
 
@@ -229,7 +306,6 @@ export async function atualiza(oId: string, osDados: any): Promise<IResultado> {
             doc: response.doc
         };
     } catch (error) {        
-//        throw new Error(trataException(error));
         return {
             sucesso: false,
             mensagem: trataException(error)

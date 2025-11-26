@@ -1,7 +1,7 @@
-// src/services/taxaService.ts
+// src/services/graduacao.service.ts
 import { IGraduacao } from 'src/models/graduacao';
-import * as repositorio from '../respositories/graduacaoRepository';
-import * as pessoaRepositorio from '../respositories/pessoaRepository';
+import * as repositorio from '../repositories/graduacao.repository';
+import * as pessoaRepositorio from '../repositories/pessoa.repository';
 import { decripta } from '../utils/crypto';
 import { IResultado } from '../models/resultado'
 
@@ -52,7 +52,11 @@ export async function busca(oId: string): Promise<IResultado> {
 
         return { sucesso: true, doc }
     } catch (error) {
-        throw error;
+        return {
+            sucesso: false,
+            mensagem: 'Erro desconhecido ao buscar a graduacao pelo id',
+            erro: error instanceof Error ? error.message : 'Erro desconhecido'
+        };
     }
 }
 
@@ -83,7 +87,11 @@ export async function buscaTodos(): Promise<IResultado> {
             docs: response.docs
         };
     } catch (error) {
-        throw error;
+        return {
+            sucesso: false,
+            mensagem: 'Erro desconhecido ao buscar todas as graduacoes',
+            erro: error instanceof Error ? error.message : 'Erro desconhecido'
+        };
     }
 }
 
@@ -123,7 +131,6 @@ export async function inclui(osDados: any): Promise<IResultado> {
             doc: response.doc
         };
     } catch (error) {
-        //throw new Error(trataException(error));
         return {
             sucesso: false,
             mensagem: trataException(error)
@@ -150,7 +157,6 @@ export async function atualiza(oId: string, osDados: any): Promise<IResultado> {
         };
 
     } catch (error) {
-        //throw new Error(trataException(error));
         return {
             sucesso: false,
             mensagem: trataException(error)
@@ -190,7 +196,6 @@ export async function exclui(oId: string): Promise<IResultado> {
         };
 
     } catch (error) {
-        //throw new Error(trataException(error));
         return {
             sucesso: false,
             mensagem: trataException(error)

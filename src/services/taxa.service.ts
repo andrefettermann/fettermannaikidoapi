@@ -3,13 +3,12 @@
  */
 
 import { ITaxa } from 'src/models/taxa';
-import * as repositorio from '../respositories/taxaRepository';
+import * as repositorio from '../repositories/taxa.repository';
 import { IResultado } from '../models/resultado'
-import { formataMoeda, formataValorComDecimais } from '../utils/formata_decimal';
+import { formataValorComDecimais } from '../utils/formata_decimal';
 
 function preparaRespostaDocs(oDoc: any): any {
     const valorPadrao = formataValorComDecimais(oDoc.valor_padrao);
-    //formataMoeda(oDoc.valor_padrao)
     const doc = {
         id: oDoc._id,
         nome: oDoc.nome,

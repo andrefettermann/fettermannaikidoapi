@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import { AfterAll, BeforeAll, Given, Then, When } from "@cucumber/cucumber";
 import { connectDB, disconnectDB } from "../../src/db";
-import * as servico from '../../src/services/cobrancaService'
+import * as servico from '../../src/services/cobranca.service'
 import { IResultado } from '../../src/models/resultado';
 
 var resposta: IResultado;
