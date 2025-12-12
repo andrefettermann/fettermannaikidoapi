@@ -40,7 +40,7 @@ export async function busca(oId: string): Promise<IResultado> {
         const response = await repositorio.find(id);
         if (!response.sucesso || !response.doc) return response;
 
-        const doc = response.doc;
+        var doc = response.doc;
 
         if (Array.isArray(doc.pessoas)) {
             doc.pessoas.forEach((a: any) => {
@@ -50,7 +50,19 @@ export async function busca(oId: string): Promise<IResultado> {
             });
         }
 
-        return { sucesso: true, doc }
+        const doc_processado = {
+            id: doc._id,
+            sequencia: doc.sequencia,
+            nome: doc.nome,
+            faixa: doc.faixa,
+            minimo_horas_treino_exame: doc.minimo_horas_treino_exame,
+            minimo_tempo_exame: doc.minimo_tempo_exame,
+            categoria: doc.categoria,
+            observacoes: doc.observacoes,
+            tecnicas: doc.tecnicas,
+        };
+
+        return { sucesso: true, doc: doc_processado }
     } catch (error) {
         return {
             sucesso: false,
@@ -65,10 +77,25 @@ export async function buscaTodos(): Promise<IResultado> {
         const response = await repositorio.findAll();
         if (!response.sucesso || !Array.isArray(response.docs)) return response;
 
+        const docs: any[] = [];
 
         if (Array.isArray(response.docs)) {
             response.docs.forEach((g: any) => {
                 g._id = g._id.toString();
+
+                const doc = {
+                    id: g._id,
+                    sequencia: g.sequencia,
+                    nome: g.nome,
+                    faixa: g.faixa,
+                    minimo_horas_treino_exame: g.minimo_horas_treino_exame,
+                    minimo_tempo_exame: g.minimo_tempo_exame,
+                    categoria: g.categoria,
+                    //observacoes: g.observacoes,
+                    //tecnicas: g.tecnicas,
+                };
+
+                docs.push(doc);
             })
 
             response.docs.sort((a: { ordem: number; }, b: { ordem: number; }) => {
@@ -84,7 +111,7 @@ export async function buscaTodos(): Promise<IResultado> {
 
         return {
             sucesso: true,
-            docs: response.docs
+            docs
         };
     } catch (error) {
         return {

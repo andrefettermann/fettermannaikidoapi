@@ -7,7 +7,7 @@ import * as repositorio from '../repositories/taxa.repository';
 import { IResultado } from '../models/resultado'
 import { formataValorComDecimais } from '../utils/formata_decimal';
 
-function preparaRespostaDocs(oDoc: any): any {
+function processaResposta(oDoc: any): any {
     const valorPadrao = formataValorComDecimais(oDoc.valor_padrao);
     const doc = {
         id: oDoc._id,
@@ -22,11 +22,7 @@ function preparaRespostaDocs(oDoc: any): any {
     return doc;
 }
 
-function preparaRespostaDoc(oDoc: any): any {
-    return preparaRespostaDocs(oDoc);
-}
-
-function setDoc(osDados: any): ITaxa {
+function preparaDocGravacao(osDados: any): ITaxa {
     var taxa: ITaxa = {
         'tipo': osDados.tipo,
         'nome': osDados.nome,
@@ -34,7 +30,9 @@ function setDoc(osDados: any): ITaxa {
         'is_ativa': osDados.is_ativa?true:false,
         'is_recorrente': osDados.is_recorrente?true:false,
         'periodicidade': osDados.periodicidade,
-        'valor_padrao': osDados.valor_padrao?osDados.valor_padrao.replace(',', '.'):0,
+        'valor_padrao': osDados.valor_padrao
+                ?osDados.valor_padrao.replace(',', '.')
+                :0,
     };
 
     return taxa;
@@ -46,11 +44,15 @@ export async function busca(oId: string): Promise<IResultado> {
         const response = await repositorio.find(id);
         if (!response.sucesso || !response.doc) return response;
 
-        const doc = preparaRespostaDoc(response.doc);
+        const doc = processaResposta(response.doc);
 
         return { sucesso: true, doc }
     } catch (error) {
-        throw error;
+        return {
+            sucesso: false,
+            mensagem: `Erro ao buscar a taxa pelo id ${id}`,
+            erro: error instanceof Error ? error.message : 'Erro desconhecido'
+        };
     }
 }
 
@@ -61,13 +63,13 @@ export async function buscaTodos(): Promise<IResultado> {
 
         const docsProcessados = response.docs.map((element: any) => {
             try {
-                return preparaRespostaDocs(element);
+                return processaResposta(element);
             } catch (error) {
                 console.error('Erro ao processar a resposta:', error);
 
                 return {
                     sucesso: false,
-                    mensagem: 'Erro ao buscar as taxas',
+                    mensagem: 'Erro ao processar a resposta da busca de todas as taxas.',
                     erro: error instanceof Error ? error.message : 'Erro desconhecido'
                 };        
             }
@@ -78,7 +80,11 @@ export async function buscaTodos(): Promise<IResultado> {
             docs: docsProcessados
         };
     } catch (error) {
-        throw error;
+        return {
+            sucesso: false,
+            mensagem: `Erro ao buscar todas as taxas`,
+            erro: error instanceof Error ? error.message : 'Erro desconhecido'
+        };
     }
 }
 
@@ -102,36 +108,36 @@ function trataException(exception: any): string {
 }
 
 export async function inclui(osDados: any): Promise<IResultado> {
-    const dados: ITaxa = setDoc(osDados);
+    const dados = preparaDocGravacao(osDados);
     try {
         const response = await repositorio.insert(dados);
-        if (!response) {
-            return {
-                sucesso: false,
-                mensagem: 'Erro ao incluir os dados',
-                erro: undefined
-            };
-        }
+        return response
+        /*
+        if (!response.sucesso) return response;
 
         return {
             sucesso: true,
             doc: response.doc
         };
+        */
     } catch (error) {
         //throw new Error(trataException(error));
         return {
             sucesso: false,
-            mensagem: trataException(error)
+            mensagem: trataException(error),
+            erro: error instanceof Error ? error.message : 'Erro desconhecido'
         }
     }
 }
 
 export async function atualiza(oId: string, osDados: any): Promise<any> {
     const id = oId;
-    const dados = setDoc(osDados);
+    const dados = preparaDocGravacao(osDados);
 
     try {
         const response = await repositorio.update(id, dados);
+        return response;
+        /*
         if (!response.sucesso || !response.doc) {
             return {
                 sucesso: false,
@@ -143,12 +149,13 @@ export async function atualiza(oId: string, osDados: any): Promise<any> {
             sucesso: true,
             doc: response.doc
         };
-
+        */
     } catch (error) {
         //throw new Error(trataException(error));
         return {
             sucesso: false,
-            mensagem: trataException(error)
+            mensagem: trataException(error),
+            erro: error instanceof Error ? error.message : 'Erro desconhecido'
         }
     }
 }

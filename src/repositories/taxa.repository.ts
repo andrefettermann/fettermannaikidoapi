@@ -64,8 +64,8 @@ export async function insert(data: ITaxa): Promise<IResultado>{
         if (!response) {
             return {
                 sucesso: false,
-                mensagem: "Erro ao incluir os dados",
-                erro: "Registro não encontrado"
+                mensagem: 'Erro ao incluir os dados',
+                erro: 'Registro não criado'
             }
         }
 
@@ -88,19 +88,20 @@ export async function update(id: string, data: any): Promise<IResultado>{
                     runValidators: true
                 }
             )
-            if (!response) {
-                return {
-                    sucesso: false,
-                    mensagem: "Erro ao atualizar os dados",
-                    erro: "Registro não encontrado"
-                }
-            }
-        
+
+        if (!response) {
             return {
-                sucesso: true,
-                doc: response
+                sucesso: false,
+                mensagem: 'Erro ao atualizar os dados',
+                erro: 'Registro não encontrado para atualização'
             }
-        } catch(error){
-            throw error;
         }
+        
+        return {
+            sucesso: true,
+            doc: response
+        }
+    } catch(error){
+        throw error;
     }
+}

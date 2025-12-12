@@ -6,17 +6,20 @@ export async function buscaTodos(req: Request, res: Response, next: NextFunction
     try {
         const response = await servico.buscaTodos();
         if (!response.sucesso || !Array.isArray(response.docs)) {
-            return res.status(204).json( {
-                sucesso: false,
-                mensagem: response.mensagem,
-                erro: response.erro
-            } );
+            return res.status(204).json(response);
+                //{
+                //sucesso: false,
+                //mensagem: response.mensagem,
+                //erro: response.erro
+                //} 
+            //);
         }
         
-        return res.status(200).send({
-            sucesso: true,
-            docs: response.docs
-        });
+        return res.status(200).send(response)
+            //{
+            //sucesso: true,
+            //docs: response.docs
+            //});
     } catch (error) {
         return res.status(500).json({ 
             sucesso: false,
@@ -31,17 +34,10 @@ export async function busca(req: Request, res: Response, next: NextFunction) {
     try { 
         const response = await servico.busca(id);
         if (!response.sucesso || !response.doc) {
-            return res.status(204).json( {
-                sucesso: false,
-                mensagem: response.mensagem,
-                erro: response.erro
-            } );
+            return res.status(204).json(response);
         }
 
-        return res.status(200).send({
-            sucesso: true,
-            doc: response.doc
-        });
+        return res.status(200).send(response);
     } catch (error) {
         return res.status(500).json({ 
             sucesso: false,
@@ -55,16 +51,9 @@ export async function inclui(req: Request, res: Response, next: NextFunction) {
     try {
         const response = await servico.inclui(req.body);
         if (!response.sucesso) {
-            return res.status(204).json( {
-                sucesso: false,
-                mensagem: response.mensagem,
-                erro: response.erro
-            } );
+            return res.status(204).json(response);
         }
-        return res.status(201).send({
-            sucesso: true,
-            docs: response.docs
-        });
+        return res.status(201).send(response);
     } catch (error) {
         return res.status(500).json({ 
             sucesso: false,
@@ -78,16 +67,9 @@ export async function atualiza(req: Request, res: Response, next: NextFunction) 
     try {
         const response = await servico.atualiza(req.params.id, req.body);
         if (!response.sucesso) {
-            return res.status(204).json( {
-                sucesso: false,
-                mensagem: response.mensagem,
-                erro: response.erro
-            } );
+            return res.status(204).json(response);
         }
-        return res.status(200).send({
-            sucesso: true,
-            docs: response.docs
-        });
+        return res.status(200).send(response);
     } catch (error) {
         return res.status(500).json({ 
             sucesso: false,
