@@ -10,19 +10,6 @@ import { IResultado } from "../models/resultado";
  * @author Andre Fettermann
  */
 
-const lookupProfessor = {
-    $lookup: {
-        from: "pessoas",
-        let: { professorId: "$id_professor" },
-        pipeline: [
-            { $match: { $expr: { $eq: ["$_id", "$$professorId"] } } },
-            { $project: { _id: 1, nome: 1 } },
-            { $limit: 1 }
-        ],
-        as: "professor"
-    }
-}
-
 const lookupAlunos = {
     $lookup: {
         from: "pessoas",
@@ -45,10 +32,8 @@ const projectDojos = {
         cidade: 1,
         uf: 1,
         is_ativo: 1,
-        'professor._id': 1,
-        'professor.nome': 1,
-        horarios: 1
-    } 
+        professores: 1
+    }
 }
 
 export async function find(id: string): Promise<IResultado> {
@@ -64,7 +49,6 @@ export async function find(id: string): Promise<IResultado> {
 
         const pipeline = [
             { $match: { _id: new ObjectId(id) } },
-            lookupProfessor,
             lookupAlunos,
             { $limit: 1 }
         ];
@@ -96,8 +80,6 @@ export async function findAll(): Promise<IResultado> {
         await connectDB();
 
         const response = await Dojo.aggregate([
-                lookupProfessor,
-                //{$unwind: '$professor'},
                 projectDojos,
                 { $sort: { nome: 1 } }
             ])
@@ -123,8 +105,8 @@ export async function findByIsAtivo(ativo: boolean): Promise<IResultado> {
             {
                 $match: { 'is_ativo': ativo }
             },  
-            lookupProfessor,
-            projectDojos,
+            //lookupProfessor,
+            //projectDojos,
             { $sort: { nome: 1 } }
         ])
         .allowDiskUse(true)
@@ -188,6 +170,36 @@ export async function update(id: string, osDados: IDojo): Promise<IResultado> {
             doc: response
         }
     }  catch(error){
+        throw error;
+    }
+}
+
+export async function addProfessor(idDojo: string, osDados: { id_pessoa: string, horarios: string}): Promise<IResultado> {
+    const idProfessor = osDados.id_pessoa;
+    const horarios = osDados.horarios;
+
+    try {
+        await connectDB();
+
+        const response = await Dojo.findOneAndUpdate(
+            { "_id": idDojo },
+            { $addToSet: { professores: { id_professor: new ObjectId(idProfessor) , horarios } } },
+            { new: true }
+        );
+
+        if (!response) {
+            return {
+                sucesso: false,
+                mensagem: `Dojo não encontrado: ${idDojo}`,
+            }
+        }
+
+        return {
+            sucesso: true,
+            doc: response
+        }
+    } catch (error) {
+        console.error('Erro em addProfessor dojo.repository:', error);
         throw error;
     }
 }

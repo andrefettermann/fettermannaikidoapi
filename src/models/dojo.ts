@@ -17,9 +17,11 @@ interface IDojo {
     pais: string,
     url: string,
     email: string,
-    id_professor: ObjectId,
-    horarios: string,
     is_ativo: boolean,
+    professores?: Array<{
+        id_professor: ObjectId,
+        horarios?: string
+    }>,
 };
 
 /**
@@ -64,19 +66,20 @@ const DojoSchema = new Schema<IDojo>({
         type: String,
         required: false
     },
-    id_professor: {
-        type: mongodb.ObjectId,
-        required: false
-    },
-    horarios: {
-        type: String,
-        required: false
-    },
     is_ativo: {
         type: Boolean,
         required: false
-    }
-
+    },
+    professores: [{
+        id_professor: {
+            type: mongodb.ObjectId,
+            required: false
+        },
+        horarios: {
+            type: String,
+            required: false
+        }
+    }]
 })
 
 const Dojo = model<IDojo>('dojos', DojoSchema);

@@ -22,6 +22,8 @@ router.get('/lista/inativos', authenticate, controller.buscaInativos)
 
 router.post('/inclui', authenticate, controller.inclui);
 
+router.patch('/:id/inclui/professor', authenticate, controller.incluiProfessor); 
+
 router.patch('/altera/:id', authenticate, controller.atualiza);
 
 export default router;

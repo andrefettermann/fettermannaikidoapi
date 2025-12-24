@@ -153,3 +153,26 @@ export async function atualiza(req: Request, res: Response, next: NextFunction) 
          });
     }
 }
+
+export async function incluiProfessor(req: Request, res: Response, next: NextFunction) {
+    try {
+        const response: any = await servico.incluiProfessor(req.params.id, req.body);
+        if (!response.sucesso) {
+            return res.status(204).json( {
+                sucesso: false,
+                mensagem: response.mensagem,
+                erro: response.erro
+            } );
+        }
+        return res.status(200).send({
+            sucesso: true,
+            docs: response.docs
+        });
+    } catch (error) {
+        return res.status(500).json({ 
+            sucesso: false,
+            mensagem: "Erro ao incluir professor no dojo",
+            erro: error instanceof Error ? error.message : 'Erro desconhecido'
+         });
+    }
+} 
